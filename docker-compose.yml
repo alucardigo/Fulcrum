@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  # Serviço da API (Backend NestJS)
+  api:
+    build:
+      context: ./apps/api # Caminho para o Dockerfile da API
+      dockerfile: Dockerfile
+    container_name: saas_api
+    restart: unless-stopped
+    ports:
+      - "3001:3001" # Mapeia a porta 3001 do host para a 3001 do container
+    env_file:
+      - ./apps/api/.env # Carrega variáveis de ambiente do .env da API (serão sobrescritas abaixo se definidas)
+    environment:
+      # Sobrescrever ou adicionar variáveis de ambiente específicas para o Docker
+      DATABASE_URL: "mysql://root_user_test:root_password_test@db:3306/enterprisedb_test"
+      JWT_SECRET: "your-super-secret-jwt-key-for-docker-compose-override" # Segredo JWT para o ambiente Docker
+      API_PORT: 3001 # Garante que a API use a porta correta dentro do container
+      # NODE_ENV: development # Pode ser definido para dev ou production se necessário aqui
+    volumes:
+      # Para desenvolvimento com hot-reload (descomente se necessário):
+      # - ./apps/api/src:/usr/src/app/src
+      # - ./apps/api/prisma:/usr/src/app/prisma
+      # O node_modules não deve ser montado para usar o da imagem.
+      - ./logs/api:/usr/src/app/logs # Exemplo de volume para logs
+    depends_on:
+      - db
+    networks:
+      - saas_network
+
+  # Serviço do Frontend (Next.js)
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: saas_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/web/.env.local # Carrega variáveis de ambiente do .env.local do frontend (serão sobrescritas abaixo)
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: "http://api:3001" # Aponta para o serviço API dentro da rede Docker
+      # NODE_ENV: development # Para desenvolvimento; para produção, a imagem Dockerfile já define NODE_ENV=production
+    # Para desenvolvimento com hot-reload (descomente se necessário):
+    # volumes:
+    #   - ./apps/web/src:/usr/src/app/src
+    #   - ./apps/web/public:/usr/src/app/public
+    depends_on:
+      - api
+    networks:
+      - saas_network
+
+  # Serviço do Banco de Dados (MySQL 5.7)
+  db:
+    image: mysql:5.7
+    container_name: saas_db
+    restart: unless-stopped
+    ports:
+      - "3307:3306" # Mapeia 3307 do host para 3306 do container MySQL
+    environment:
+      MYSQL_DATABASE: "enterprisedb_test"
+      MYSQL_USER: "root_user_test"
+      MYSQL_PASSWORD: "root_password_test"
+      MYSQL_ROOT_PASSWORD: "root_super_strong_password_test"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Para scripts de inicialização:
+      # - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - saas_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  saas_network:
+    driver: bridge

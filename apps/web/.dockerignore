@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+.git
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos .env não devem ser copiados para a imagem; serão fornecidos em tempo de execução
+.env
+.env.*
+!.env.example # Permitir .env.example se existir e for desejado na imagem
+
+# Dockerfile e .dockerignore não precisam estar na imagem
+Dockerfile
+.dockerignore

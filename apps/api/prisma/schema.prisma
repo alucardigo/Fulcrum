@@ -1,0 +1,116 @@
+// Prisma Schema for Enterprise SaaS Platform (Fulcrum)
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  firstName        String?
+  lastName         String?
+  isActive         Boolean           @default(true)
+  roles            Role[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  purchaseRequests PurchaseRequest[] @relation("RequestedByUser")
+  projectsOwned    Project[]         @relation("OwnedByUser")
+  requestHistories RequestHistory[]  @relation("UserHistory")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String // JSON string of permissions
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("roles")
+}
+
+model PurchaseRequest {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?   @db.Text
+  status          String
+  priority        RequisicaoCompraPrioridade @default(MEDIA)  // CORRIGIDO DE MEDIUM PARA MEDIA
+  totalAmount     Decimal?  @db.Decimal(10, 2)
+  requesterId     String
+  requester       User      @relation("RequestedByUser", fields: [requesterId], references: [id])
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+  items           Item[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  orderedAt       DateTime?
+  completedAt     DateTime?
+  histories       RequestHistory[] @relation("PurchaseRequestHistory")
+
+  @@index([requesterId])
+  @@index([projectId])
+  @@map("purchase_requests")
+}
+
+model Project {
+  id               String            @id @default(cuid())
+  name             String
+  description      String?           @db.Text
+  budget           Decimal?          @db.Decimal(12, 2)
+  ownerId          String
+  owner            User              @relation("OwnedByUser", fields: [ownerId], references: [id])
+  purchaseRequests PurchaseRequest[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+model Item {
+  id                  String          @id @default(cuid())
+  name                String
+  description         String?         @db.Text
+  quantity            Int
+  unitPrice           Decimal         @db.Decimal(10, 2)
+  totalPrice          Decimal         @db.Decimal(10, 2)
+  supplier            String?
+  url                 String?
+  purchaseRequestId   String
+  purchaseRequest     PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([purchaseRequestId])
+  @@map("items")
+}
+
+model RequestHistory {
+  id                String          @id @default(cuid())
+  actionDescription String          @db.Text
+  previousState     String?         @db.Text
+  newState          String          @db.Text
+  timestamp         DateTime        @default(now())
+  notes             String?         @db.Text
+  userId            String
+  user              User            @relation("UserHistory", fields: [userId], references: [id], onDelete: Restrict)
+  purchaseRequestId String
+  purchaseRequest   PurchaseRequest @relation("PurchaseRequestHistory", fields: [purchaseRequestId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([purchaseRequestId])
+  @@map("request_histories")
+}
+
+enum RequisicaoCompraPrioridade {
+  BAIXA
+  MEDIA
+  ALTA
+}

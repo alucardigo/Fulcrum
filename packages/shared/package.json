@@ -1,0 +1,16 @@
+{
+  "name": "shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src/**/*.ts",
+    "test": "echo \"Tests for shared package not yet implemented\""
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "typescript": "^5.0.0"
+  }
+}
