@@ -5,26 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // Import useRouter
 import useRequestStore from '../../../stores/useRequestStore'; // Adjust path as necessary
 import { useAuthStore } from '../../../stores/authStore'; // Import useAuthStore
-import { PurchaseRequestWithHistory } from '../../../stores/useRequestStore'; // Assuming type is exported
+import { PurchaseRequestAPIResponse as PurchaseRequestWithHistory } from '../../../stores/useRequestStore'; // Use updated type
+import { StatusBadge } from 'ui'; // Import from ui package
 import toast, { Toaster } from 'react-hot-toast'; // For potential notifications
 
-// A simple StatusBadge component (can be moved to a shared components folder)
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  let color = 'bg-gray-400'; // Default
-  if (status === 'PENDENTE') color = 'bg-yellow-500';
-  else if (status === 'APROVADA') color = 'bg-green-500';
-  else if (status === 'REJEITADA') color = 'bg-red-500';
-  else if (status === 'EM_COTACAO') color = 'bg-blue-500';
-  // Add more statuses as needed
+// Local StatusBadge component is now removed, will use the one from 'ui'
 
-  return (
-    <span className={`px-2 py-1 text-xs font-semibold text-white rounded-full ${color}`}>
-      {status.replace('_', ' ')}
-    </span>
-  );
-};
-
-// A simple LoadingSpinner component (can be moved)
+// A simple LoadingSpinner component (can be moved or replaced by one from 'ui' if available)
 const LoadingSpinner: React.FC = () => (
   <div className="flex justify-center items-center h-32">
     <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>

@@ -4,9 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useRequestStore from '../../../../stores/useRequestStore';
-import { useAuthStore, UserRole } from '../../../../stores/authStore'; // Import UserRole
+import { useAuthStore, UserRole } from '../../../../stores/authStore';
+// Use PurchaseRequestAPIResponse for consistency with store
 import { RequestHistoryEntry, PurchaseRequestWithHistory } from '../../../../stores/useRequestStore';
-import { RequisicaoCompraStatus as PurchaseStatus } from '@fulcrum/shared'; // Import status enum
+import { RequisicaoCompraStatus as PurchaseStatus } from '@fulcrum/shared';
+import { Modal, StatusBadge, uiToast, Toaster } from 'ui'; // Import from ui package
 
 // --- RejectionReasonModal Component ---
 interface RejectionReasonModalProps {
@@ -106,7 +108,7 @@ const DetailItem: React.FC<{ label: string; value?: string | number | null }> = 
   </div>
 );
 
-const RequestTimeline: React.FC<{ history: RequestHistoryEntry[] }> = ({ history }) => {
+const RequestTimeline: React.FC<{ history?: RequestHistoryEntry[] }> = ({ history }) => { // Made history optional
   if (!history || history.length === 0) {
     return <p className="text-gray-600">Nenhum histórico disponível para esta requisição.</p>;
   }
@@ -144,9 +146,10 @@ const RequestDetailsPage = () => {
   const id = typeof params.id === 'string' ? params.id : undefined;
 
   const { currentRequest, isLoading, error, fetchRequestById, transitionRequestState } = useRequestStore();
-  const { user: authUser, isLoading: authLoading } = useAuthStore(); // Get authUser and authLoading
+  const { user: authUser, isLoading: authLoading } = useAuthStore();
 
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  // Storing the eventType for rejection
   const [actionToConfirm, setActionToConfirm] = useState<{ action: 'reject'; newStatus: PurchaseStatus } | null>(null);
 
 
