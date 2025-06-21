@@ -7,6 +7,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "test": "turbo run test",
+    "build:ui": "turbo run build --filter=ui",
     "db:generate": "turbo run db:generate --filter=api",
     "db:migrate:dev": "turbo run db:migrate:dev --filter=api",
     "db:seed": "turbo run db:seed --filter=api",

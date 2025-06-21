@@ -1,29 +1,33 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import React, { useEffect } from 'react'; // No longer need useState for isOpen if passed as prop to ui/Modal
+import { useForm, useFieldArray } from 'react-hook-form'; // Controller might not be needed if not using controlled <select> from UI lib
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import useRequestStore from '../../stores/useRequestStore'; // Adjust if necessary
-import { RequisicaoCompraPrioridade, ItemRequisicao } from '@fulcrum/shared'; // Assuming these types are available
+import useRequestStore from '../../stores/useRequestStore';
+import { RequisicaoCompraPrioridade, CriarRequisicaoCompraDto } from '@fulcrum/shared'; // Use CriarRequisicaoCompraDto
+import { Modal, uiToast, Toaster } from 'ui'; // Import Modal and uiToast from 'ui'
 
-// Zod Schema for Validation
+// Zod Schema for Validation (matches CreateRequestFormData, which aligns with CriarRequisicaoCompraDto)
+// Item schema for the form. This should align with ItemRequisicao from shared, but without id/precoTotal
 const itemSchema = z.object({
-  nome: z.string().min(3, { message: "Nome do item deve ter pelo menos 3 caracteres." }),
-  quantidade: z.number({ invalid_type_error: "Quantidade deve ser um número." }).min(1, { message: "Quantidade deve ser maior que zero." }),
+  nome: z.string().min(3, "Nome do item deve ter pelo menos 3 caracteres."),
+  quantidade: z.number({ coerce: true }).int("Quantidade deve ser um número inteiro.").min(1, "Quantidade deve ser maior que zero."),
   descricao: z.string().optional(),
-  precoUnitario: z.number({ invalid_type_error: "Preço deve ser um número." }).optional(),
-  // fornecedor: z.string().optional(), // Add more fields as needed
-  // urlProduto: z.string().url({ message: "URL inválida." }).optional(),
+  precoUnitario: z.number({ coerce: true }).optional().nullable(), // Allow empty string, coerce to number
+  // Add other ItemRequisicao fields if needed in the form: fornecedor, urlProduto
 });
 
+// Form schema aligning with CriarRequisicaoCompraDto
 const createRequestSchema = z.object({
-  titulo: z.string().min(5, { message: "Título deve ter pelo menos 5 caracteres." }),
+  titulo: z.string().min(5, "Título deve ter pelo menos 5 caracteres."),
   descricao: z.string().optional(),
   prioridade: z.nativeEnum(RequisicaoCompraPrioridade).default(RequisicaoCompraPrioridade.MEDIA),
-  itens: z.array(itemSchema).min(1, { message: "Adicione pelo menos um item à requisição." }),
+  // idProjeto: z.string().optional(), // Add if project selection is implemented
+  itens: z.array(itemSchema).min(1, "Adicione pelo menos um item à requisição."),
 });
 
+// This type is inferred from the schema and should match the structure of CriarRequisicaoCompraDto
 type CreateRequestFormData = z.infer<typeof createRequestSchema>;
 
 interface CreateRequestModalProps {
@@ -56,44 +60,49 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ isOpen, onClose
   });
 
   const onSubmit = async (data: CreateRequestFormData) => {
-    console.log("Form data submitted:", data);
-    // The store's createRequest expects a slightly different structure for items
-    // (Omit<ItemRequisicao, 'id' | 'precoTotal'>[])
-    // The current itemSchema is compatible if we ensure only relevant fields are passed.
-    // The store mock also calculates precoTotal.
-    const submissionData = {
-        ...data,
-        // idRequisitante is handled by the store's mock for now
-    };
-
+    // Data already matches CreateRequestFormData, which should be compatible with CriarRequisicaoCompraDto
+    // The store's createRequest now expects CriarRequisicaoCompraDto.
+    // Ensure that any transformation needed (e.g. string to number for prices if not coerced by Zod) happens here or in store.
+    // Zod's `coerce` option handles string-to-number for number fields.
     try {
-      const result = await storeCreateRequest(submissionData);
+      const result = await storeCreateRequest(data); // Pass data directly
       if (result) {
-        alert("Requisição criada com sucesso!"); // Replace with a proper toast notification
-        reset();
-        onClose();
+        uiToast.success("Requisição criada com sucesso!");
+        reset(); // Reset form on successful submission
+        onClose(); // Close modal
       } else {
-        alert("Falha ao criar requisição. Verifique o console.");
+        // Error already toasted by the store, but can add specific UI feedback here if needed
+        // uiToast.error("Falha ao criar requisição. Verifique os campos.");
       }
-    } catch (error) {
-      console.error("Error submitting request:", error);
-      alert("Erro ao submeter requisição.");
+    } catch (error) { // Should not happen if store handles errors, but as a fallback
+      console.error("Error submitting request from modal:", error);
+      uiToast.error("Erro inesperado ao submeter requisição.");
     }
   };
 
-  if (!isOpen) return null;
+  // Reset form when modal is closed externally or successfully submitted
+  useEffect(() => {
+    if (!isOpen) {
+      reset({
+        titulo: '',
+        descricao: '',
+        prioridade: RequisicaoCompraPrioridade.MEDIA,
+        itens: [{ nome: '', quantidade: 1, descricao: '', precoUnitario: undefined }],
+      });
+    }
+  }, [isOpen, reset]);
+
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
-      <div className="relative p-8 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-        <button
-          onClick={() => { reset(); onClose(); }}
-          className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold"
-          aria-label="Fechar modal"
-        >
-          &times;
-        </button>
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800">Criar Nova Requisição</h2>
+    <>
+      {/* Toaster for uiToast notifications from this modal, if not globally available */}
+      {/* <Toaster position="top-right" /> */}
+      <Modal
+        isOpen={isOpen}
+        onClose={() => { reset(); onClose(); }}
+        title="Criar Nova Requisição"
+        className="max-w-2xl" // Example: making modal wider
+      >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="titulo" className="block text-sm font-medium text-gray-700">Título da Requisição</label>
