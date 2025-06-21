@@ -1,0 +1,71 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": [
+    "**/.env.*local",
+    "**/.env"
+  ],
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "apps/api/dist/**",
+        "apps/api/node_modules/.prisma/client/**",
+        "apps/web/.next/**",
+        "apps/web/out/**",
+        "packages/shared/dist/**",
+        "packages/ui/dist/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_API_BASE_URL"
+      ]
+    },
+    "api#build": {
+      "dependsOn": ["^build", "shared#build"],
+      "outputs": [
+        "dist/**",
+        "node_modules/.prisma/client/**"
+      ],
+      "env": ["DATABASE_URL"]
+    },
+    "web#build": {
+      "dependsOn": ["^build", "shared#build", "ui#build"],
+      "outputs": [
+        ".next/**",
+        "out/**"
+      ],
+      "env": ["NEXT_PUBLIC_API_BASE_URL"]
+    },
+    "shared#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "ui#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "docker-build": {
+        "dependsOn": ["^build"],
+        "outputs": [],
+        "cache": false
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": [
+        "DATABASE_URL",
+        "JWT_SECRET"
+      ]
+    }
+  },
+  "globalEnv": [
+    "NODE_ENV"
+  ]
+}

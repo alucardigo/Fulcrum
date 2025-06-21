@@ -1,0 +1,76 @@
+name: Daily Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Executa às 2h da manhã todos os dias
+
+jobs:
+  backup:
+    name: 📦 Backup Dados
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+          
+      - name: Backup MySQL database
+        run: |
+          mysqldump -h ${{ secrets.DB_HOST }} \
+                   -u ${{ secrets.DB_USER }} \
+                   -p${{ secrets.DB_PASSWORD }} \
+                   ${{ secrets.DB_NAME }} > backup.sql
+                   
+      - name: Backup Redis data
+        run: |
+          redis-cli -h ${{ secrets.REDIS_HOST }} \
+                   -p ${{ secrets.REDIS_PORT }} \
+                   -a ${{ secrets.REDIS_PASSWORD }} \
+                   --rdb redis-backup.rdb
+                   
+      - name: Backup Prometheus data
+        run: |
+          tar -czf prometheus-backup.tar.gz /prometheus
+          
+      - name: Backup Grafana dashboards
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_API_KEY }}" \
+            "${{ secrets.GRAFANA_URL }}/api/dashboards" > grafana-backup.json
+            
+      - name: Upload backups to S3
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          aws s3 cp backup.sql s3://${{ secrets.BACKUP_BUCKET }}/mysql/backup_${timestamp}.sql
+          aws s3 cp redis-backup.rdb s3://${{ secrets.BACKUP_BUCKET }}/redis/backup_${timestamp}.rdb
+          aws s3 cp prometheus-backup.tar.gz s3://${{ secrets.BACKUP_BUCKET }}/prometheus/backup_${timestamp}.tar.gz
+          aws s3 cp grafana-backup.json s3://${{ secrets.BACKUP_BUCKET }}/grafana/backup_${timestamp}.json
+          
+      - name: Cleanup old backups
+        run: |
+          # Mantém apenas os últimos 30 dias de backups
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/mysql/ | sort | head -n -30 | while read -r line; do
+            aws s3 rm "s3://${{ secrets.BACKUP_BUCKET }}/mysql/$(echo $line | awk '{print $4}')"
+          done
+          
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "⚠️ Falha no backup diário do Fulcrum! Verifique os logs em: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

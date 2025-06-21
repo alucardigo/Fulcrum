@@ -1,0 +1,180 @@
+// Prisma Schema for Enterprise SaaS Platform (Fulcrum)
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+enum UserRole {
+  SOLICITANTE
+  COMPRAS
+  GERENCIA
+  ADMINISTRADOR
+}
+
+enum PurchaseRequestState {
+  RASCUNHO
+  PENDENTE_COMPRAS
+  PENDENTE_GERENCIA
+  APROVADO
+  REJEITADO
+  COMPRADO
+  ENTREGUE
+  CANCELADO
+}
+
+enum PurchaseRequestPriority {
+  BAIXA
+  NORMAL
+  ALTA
+  URGENTE
+}
+
+model User {
+  id               String               @id @default(cuid())
+  email            String               @unique
+  password         String               @db.VarChar(255)
+  firstName        String               @db.VarChar(100)
+  lastName         String               @db.VarChar(100)
+  isActive         Boolean              @default(true)
+  department       String?              @db.VarChar(100)
+  costCenter       String?              @db.VarChar(50)
+  approvalLimit    Decimal?             @db.Decimal(10, 2)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  roles            UserRoleAssignment[]
+  purchaseRequests PurchaseRequest[]    @relation("RequestedByUser")
+  projectsOwned    Project[]            @relation("OwnedByUser")
+  requestHistories RequestHistory[]     @relation("UserHistory")
+  approvedRequests PurchaseRequest[]    @relation("ApprovedByUser")
+
+  @@index([email])
+  @@index([department])
+  @@index([costCenter])
+  @@map("users")
+}
+
+model PurchaseRequest {
+  id                  String               @id @default(cuid())
+  title              String               @db.VarChar(200)
+  description        String?              @db.Text
+  status             PurchaseRequestState @default(RASCUNHO)
+  priority           PurchaseRequestPriority @default(NORMAL)
+  totalAmount        Decimal              @db.Decimal(10, 2)
+  requesterId        String
+  requester          User                 @relation("RequestedByUser", fields: [requesterId], references: [id])
+  approverId         String?
+  approver           User?                @relation("ApprovedByUser", fields: [approverId], references: [id])
+  projectId          String?
+  project            Project?             @relation(fields: [projectId], references: [id])
+  items              Item[]
+  costCenter         String?              @db.VarChar(50)
+  justification      String?              @db.Text
+  rejectionReason    String?              @db.Text
+  expectedDeliveryDate DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  approvedAt         DateTime?
+  rejectedAt         DateTime?
+  orderedAt          DateTime?
+  deliveredAt        DateTime?
+  histories          RequestHistory[]     @relation("PurchaseRequestHistory")
+
+  @@index([requesterId])
+  @@index([projectId])
+  @@index([approverId])
+  @@index([status])
+  @@index([costCenter])
+  @@fulltext([title, description])
+  @@map("purchase_requests")
+}
+
+model Project {
+  id               String            @id @default(cuid())
+  name             String            @db.VarChar(200)
+  code             String            @unique @db.VarChar(50)
+  description      String?           @db.Text
+  budget           Decimal           @db.Decimal(12, 2)
+  remainingBudget  Decimal           @db.Decimal(12, 2)
+  startDate        DateTime
+  endDate          DateTime?
+  status           String            @default("ACTIVE") @db.VarChar(20)
+  ownerId          String
+  owner            User              @relation("OwnedByUser", fields: [ownerId], references: [id])
+  purchaseRequests PurchaseRequest[]
+  costCenter       String?           @db.VarChar(50)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([ownerId])
+  @@index([code])
+  @@index([status])
+  @@index([costCenter])
+  @@fulltext([name, description])
+  @@map("projects")
+}
+
+model Item {
+  id                  String          @id @default(cuid())
+  name                String          @db.VarChar(200)
+  description         String?         @db.Text
+  quantity            Int
+  unitPrice           Decimal         @db.Decimal(10, 2)
+  totalPrice          Decimal         @db.Decimal(10, 2)
+  supplier            String?         @db.VarChar(200)
+  supplierCNPJ        String?         @db.VarChar(14)
+  url                 String?         @db.VarChar(500)
+  category            String?         @db.VarChar(100)
+  purchaseRequestId   String
+  purchaseRequest     PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  deliveryStatus      String?         @db.VarChar(50)
+  receivedQuantity    Int             @default(0)
+  notes               String?         @db.Text
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([purchaseRequestId])
+  @@index([category])
+  @@index([supplier])
+  @@fulltext([name, description])
+  @@map("items")
+}
+
+model RequestHistory {
+  id                String          @id @default(cuid())
+  actionType        String          @db.VarChar(50)
+  actionDescription String          @db.Text
+  previousState     String?         @db.Text
+  newState          String          @db.Text
+  metadata          Json?
+  userId            String
+  user              User            @relation("UserHistory", fields: [userId], references: [id])
+  purchaseRequestId String
+  purchaseRequest   PurchaseRequest @relation("PurchaseRequestHistory", fields: [purchaseRequestId], references: [id])
+  timestamp         DateTime        @default(now())
+
+  @@index([userId])
+  @@index([purchaseRequestId])
+  @@index([actionType])
+  @@index([timestamp])
+  @@map("request_histories")
+}
+
+model UserRoleAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  role      UserRole
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@index([role])
+  @@map("user_roles")
+}

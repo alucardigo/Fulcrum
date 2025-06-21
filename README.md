@@ -1,5 +1,22 @@
 # Fulcrum
 
+Fulcrum: The intelligent procurement platform that gives businesses leverage over their purchasing workflows.  Fulcrum is an enterprise-grade SaaS platform designed to transform chaotic procurement processes into a streamlined, transparent, and strategic asset.
+
+## Continuous Integration (CI)
+
+Este projeto utiliza GitHub Actions para integração contínua. Os seguintes workflows estão configurados:
+
+- **Linting**: Verifica o código em busca de erros de estilo e potenciais problemas a cada push ou pull request para as branches `main` e `develop`.
+  [![Linting Status](https://github.com/<OWNER>/<REPO>/actions/workflows/lint.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/lint.yml)
+
+- **Build**: Compila todas as aplicações e pacotes do monorepo a cada push ou pull request para as branches `main` e `develop`.
+  [![Build Status](https://github.com/<OWNER>/<REPO>/actions/workflows/build.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/build.yml)
+
+- **Tests**: Executa os scripts de teste (atualmente placeholders) a cada push ou pull request para as branches `main` e `develop`.
+  [![Tests Status](https://github.com/<OWNER>/<REPO>/actions/workflows/test.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/test.yml)
+
+**Nota:** Por favor, substitua `<OWNER>/<REPO>` nos URLs dos badges acima pelo nome de usuário/organização e nome do repositório corretos após o primeiro push para o GitHub.
+
 Fulcrum é uma plataforma SaaS empresarial de gestão de compras, projetada para transformar processos de compras caóticos em fluxos estratégicos, seguros e inteligentes. Inspirada na visão de produto de Steve Jobs e na excelência técnica de Linus Torvalds, a plataforma entrega simplicidade, poder e portabilidade, mesmo em ambientes restritos.
 
 ## Visão e Missão
@@ -75,6 +92,6 @@ docker-compose exec api npm run test:e2e
 - Segurança de ponta a ponta
 - Observabilidade e métricas empresariais
 
----
+
 
 Fulcrum: Gestão de compras inteligente, segura e estratégica para empresas de todos os portes.

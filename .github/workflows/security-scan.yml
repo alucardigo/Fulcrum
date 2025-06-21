@@ -1,0 +1,76 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Executa todo domingo à meia-noite
+  workflow_dispatch:  # Permite execução manual
+
+jobs:
+  security-audit:
+    name: 🔒 Auditoria de Segurança
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Run npm audit
+        run: npm audit --production
+        
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          
+      - name: Run OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.7.0
+        with:
+          target: ${{ secrets.STAGING_URL }}
+          
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog-actions-scan@master
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            snyk-report.json
+            zap-report.html
+            trivy-results.txt
+            
+      - name: Notify on High Severity Findings
+        if: failure()
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "🚨 Vulnerabilidades críticas encontradas na varredura de segurança do Fulcrum! Verifique os relatórios em: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

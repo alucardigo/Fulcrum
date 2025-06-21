@@ -1,0 +1,75 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Run Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Build
+        # The root 'build' script (pnpm build) runs 'turbo run build'.
+        # Environment variables required by specific package builds (e.g., NEXT_PUBLIC_API_BASE_URL for web#build)
+        # should be defined in turbo.json's 'env' field for those pipelines
+        # or provided here if they need to be sourced from GitHub Actions secrets or env vars.
+        # For this setup, we rely on turbo.json's env passthrough or defaults in the code.
+        run: pnpm build
+
+      # Optional: Archive build artifacts
+      # - name: Archive API artifacts
+      #   uses: actions/upload-artifact@v4 # Use v4 for upload-artifact
+      #   with:
+      #     name: api-dist
+      #     path: apps/api/dist/
+      # - name: Archive Web artifacts (.next folder)
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: web-next-build
+      #     path: apps/web/.next/
+      # - name: Archive Shared artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: shared-dist
+      #     path: packages/shared/dist/
+      # - name: Archive UI artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ui-dist
+      #     path: packages/ui/dist/
