@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SOLICITANTE
+  COMPRAS
+  GERENCIA
+  ADMINISTRADOR
+}
+
+enum PurchaseRequestState {
+  RASCUNHO
+  PENDENTE_COMPRAS
+  PENDENTE_GERENCIA
+  APROVADO
+  REJEITADO
+  COMPRADO
+  ENTREGUE
+  CANCELADO
+}
+
+enum PurchaseRequestPriority {
+  BAIXA
+  NORMAL
+  ALTA
+  URGENTE
+}
+
+// Mock schema for tests
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  roles         UserRole[]
+  isActive      Boolean   @default(true)
+  approvalLimit Decimal?  @db.Decimal(10, 2)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model PurchaseRequest {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  state       PurchaseRequestState
+  priority    PurchaseRequestPriority
+  totalAmount Decimal   @db.Decimal(10, 2)
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

@@ -1,58 +1,78 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import helmet from 'helmet';
-import * as rateLimit from 'express-rate-limit';
+const rateLimit = require('express-rate-limit');
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { MetricsService } from './metrics/metrics.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Cria a aplicação com Winston logger
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+  
   const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
+  
+  // Usa o Winston logger para logs do NestJS
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
+  // Configuração global de prefixo da API
+  const globalPrefix = configService.get('API_PREFIX') || 'api';
+  app.setGlobalPrefix(globalPrefix);
+
+  // Configuração do Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Fulcrum API')
+    .setDescription('API da Plataforma de Compras Empresarial')
+    .setVersion('1.0')
+    .addTag('auth', 'Autenticação e autorização')
+    .addTag('users', 'Gerenciamento de usuários')
+    .addTag('projects', 'Gerenciamento de projetos')
+    .addTag('items', 'Catálogo de itens')
+    .addTag('purchaserequests', 'Requisições de compra')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
+
+  // Interceptors globais
+  const metricsService = app.get(MetricsService);
+  app.useGlobalInterceptors(new LoggingInterceptor(metricsService));
+
+  // Filtros de exceção globais
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // Configuração de CORS
+  app.enableCors({
+    origin: configService.get('CORS_ORIGIN'),
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
   // Segurança: Helmet
   app.use(helmet());
 
   // Segurança: Rate Limiting
-  // Typedef for rateLimit options to avoid type errors with express-rate-limit v7+
-  // if specific options like 'handler' or 'store' were more complex.
-  // For 'max' and 'windowMs', it's usually fine.
-  const limiterOptions: rateLimit.Options = {
-      windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 100, // Limite cada IP a 100 requisições por janela (windowMs)
-      message: 'Too many requests from this IP, please try again after 15 minutes',
-      // Standard headers can be true or false.
-      // Legacy headers are 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'Retry-After'
-      // standardHeaders: true, // Recommended: 'RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'
-      // legacyHeaders: false, // Disable X-RateLimit-* headers
-  };
-  app.use(rateLimit.default(limiterOptions));
+  app.use(rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Muitas requisições vindas deste IP, tente novamente mais tarde.'
+  }));
 
-
-  // Pipes Globais: ValidationPipe para validação automática de DTOs
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Remove propriedades não definidas no DTO
-      transform: true, // Transforma o payload para instâncias de DTO
-      forbidNonWhitelisted: true, // Lança erro se propriedades não whitelisted são enviadas
-      transformOptions: {
-        enableImplicitConversion: true, // Permite conversão implícita de tipos primitivos
-      },
-    }),
-  );
-
-  // CORS (Habilitar se o frontend estiver em um domínio/porta diferente)
-  app.enableCors({
-    origin: '*', // Em produção, restrinja para o domínio do seu frontend
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-  });
-
-  // Prefixo Global para todas as rotas (ex: /api/v1)
-  // app.setGlobalPrefix('api/v1');
-
-
-  const port = configService.get<number>('API_PORT') || 3001; // Usa API_PORT do .env ou 3001 como padrão
+  // Inicia o servidor
+  const port = configService.get('PORT') || 3000;
   await app.listen(port);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  
+  logger.log(`🚀 Aplicação está rodando em: http://localhost:${port}/${globalPrefix}`);
+  logger.log(`🌍 Ambiente: ${configService.get('NODE_ENV')}`);
 }
 bootstrap();

@@ -57,4 +57,5 @@ COPY --from=builder /usr/src/app/prisma ./prisma
 EXPOSE 3001
 
 # Comando para iniciar a aplicação
+USER non-root
 CMD ["node", "dist/main.js"]

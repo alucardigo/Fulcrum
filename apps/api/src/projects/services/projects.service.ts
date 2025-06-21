@@ -15,21 +15,17 @@ export class ProjectsService {
 
   async create(createProjectDto: CreateProjectDto, ownerId: string): Promise<Project> {
     this.logger.log(`Criando novo projeto: ${createProjectDto.name} para o proprietário ID: ${ownerId}`);
+    const data: any = {
+      name: createProjectDto.name,
+      description: createProjectDto.description,
+      owner: { connect: { id: ownerId } },
+      budget: createProjectDto.budget ? new Prisma.Decimal(createProjectDto.budget) : 0,
+    };
     try {
-      const project = await this.prisma.project.create({
-        data: {
-          ...createProjectDto, // budget e description são opcionais no DTO e no schema
-          budget: createProjectDto.budget ? new Prisma.Decimal(createProjectDto.budget) : undefined,
-          owner: {
-            connect: { id: ownerId },
-          },
-        },
-      });
-      this.logger.log(`Projeto criado com sucesso ID: ${project.id}`);
-      return project;
+      return await this.prisma.project.create({ data });
     } catch (error) {
       this.logger.error(`Falha ao criar projeto para o proprietário ID: ${ownerId}`, error.stack);
-      throw new InternalServerErrorException('Não foi possível criar o projeto.');
+      throw error;
     }
   }
 
@@ -61,10 +57,10 @@ export class ProjectsService {
       throw new NotFoundException(`Projeto com ID '${id}' não encontrado.`);
     }
 
-    const dataToUpdate: Prisma.ProjectUpdateInput = { ...updateProjectDto };
-    if (updateProjectDto.budget !== undefined) {
-      dataToUpdate.budget = updateProjectDto.budget ? new Prisma.Decimal(updateProjectDto.budget) : null;
-    }
+    const dataToUpdate: any = {};
+    if (updateProjectDto.name !== undefined) dataToUpdate.name = updateProjectDto.name;
+    if (updateProjectDto.description !== undefined) dataToUpdate.description = updateProjectDto.description;
+    if (updateProjectDto.budget !== undefined) dataToUpdate.budget = new Prisma.Decimal(updateProjectDto.budget);
 
     try {
       const updatedProject = await this.prisma.project.update({

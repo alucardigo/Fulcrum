@@ -1,10 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Ability, AbilityBuilder, AbilityClass, ExtractSubjectType, InferSubjects } from '@casl/ability';
-// Import Item as PrismaItem if it needs to be a CASL subject directly
-import { User as PrismaUser, Role as PrismaRole, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-export interface UserWithRoles extends PrismaUser {
-  roles: PrismaRole[];
+// Define os modelos base para o CASL
+type Models = {
+  User: any;
+  PurchaseRequest: any;
+  Project: any;
+  Item: any;
+};
+
+// Enums necessários
+export enum UserRole {
+  SOLICITANTE = 'SOLICITANTE',
+  COMPRAS = 'COMPRAS',
+  GERENCIA = 'GERENCIA',
+  ADMINISTRADOR = 'ADMINISTRADOR'
+}
+
+export enum PurchaseRequestState {
+  RASCUNHO = 'RASCUNHO',
+  PENDENTE_COMPRAS = 'PENDENTE_COMPRAS',
+  PENDENTE_GERENCIA = 'PENDENTE_GERENCIA',
+  APROVADO = 'APROVADO',
+  REJEITADO = 'REJEITADO',
+  COMPRADO = 'COMPRADO',
+  ENTREGUE = 'ENTREGUE',
+  CANCELADO = 'CANCELADO'
 }
 
 export enum Action {
@@ -14,70 +36,83 @@ export enum Action {
   Update = 'update',
   Delete = 'delete',
   Submit = 'submit',
-  ApproveLevel1 = 'approve_level_1',
-  // ApproveLevel2 = 'approve_level_2', // Future
+  ApprovePurchase = 'approve_purchase',
+  ApproveManagement = 'approve_management',
   Reject = 'reject',
+  PlaceOrder = 'place_order',
+  ReceiveItems = 'receive_items',
+  Cancel = 'cancel',
 }
 
-// Add PrismaItem to Subjects if direct CASL rules apply to Item entities
-export type Subjects = InferSubjects<typeof PrismaPurchaseRequest | typeof PrismaUser | typeof PrismaProject | typeof PrismaItem, true> | 'all';
+export type Subjects = InferSubjects<keyof Models> | 'all';
 
 export type AppAbility = Ability<[Action, Subjects]>;
+
+export type UserWithRoles = Prisma.UserGetPayload<{
+  include: { roles: true }
+}>;
 
 @Injectable()
 export class CaslAbilityFactory {
   private readonly logger = new Logger(CaslAbilityFactory.name);
 
   createForUser(user: UserWithRoles | null) {
-    const { can, cannot, build } = new AbilityBuilder<AppAbility>(Ability as AbilityClass<AppAbility>);
+    const { can, cannot, build } = new AbilityBuilder<AppAbility>(
+      Ability as AbilityClass<AppAbility>
+    );
 
     if (!user) {
-      this.logger.debug('Construindo habilidades para usuário não autenticado/anônimo.');
+      this.logger.debug('Construindo habilidades para usuário não autenticado');
       cannot(Action.Manage, 'all');
-    } else {
-      this.logger.debug(`Construindo habilidades para usuário: ${user.email} (ID: ${user.id}), Roles: ${user.roles?.map(r => r.name).join(', ') || 'N/A'}`);
+      return build();
+    }
 
-      const userRoles = user.roles?.map(role => role.name) || [];
+    this.logger.debug(
+      `Construindo habilidades para usuário: ${user.email} (ID: ${user.id}), Roles: ${user.roles.map(r => r.role).join(', ')}`
+    );
 
-      if (userRoles.includes('ADMINISTRADOR')) {
-        this.logger.log(`Usuário ${user.email} é ADMINISTRADOR. Concedendo todas as permissões.`);
-        can(Action.Manage, 'all');
-      } else { // Permissões para não-administradores
-        can(Action.Read, PrismaUser, { id: user.id });
-        can(Action.Update, PrismaUser, { id: user.id });
+    // Administrador tem acesso total
+    if (user.roles.some(r => r.role === UserRole.ADMINISTRADOR)) {
+      can(Action.Manage, 'all');
+    }
 
-        if (userRoles.includes('SOLICITANTE')) {
-          this.logger.log(`Usuário ${user.email} é SOLICITANTE.`);
-          can(Action.Create, PrismaPurchaseRequest);
-          can(Action.Read, PrismaPurchaseRequest, { requesterId: user.id });
-          can(Action.Update, PrismaPurchaseRequest, { requesterId: user.id, status: 'RASCUNHO' });
-          can(Action.Submit, PrismaPurchaseRequest, { requesterId: user.id, status: 'RASCUNHO' });
-          // can(Action.Delete, PrismaPurchaseRequest, { requesterId: user.id, status: 'RASCUNHO' });
-          // can(Action.Read, PrismaProject); // Example: Solicitante pode ler projetos
-        }
+    // Solicitante pode criar e gerenciar suas próprias requisições
+    if (user.roles.some(r => r.role === UserRole.SOLICITANTE)) {
+      can(Action.Create, 'PurchaseRequest');
+      can([Action.Read, Action.Update], 'PurchaseRequest');
+      can(Action.Submit, 'PurchaseRequest');
+      can(Action.Cancel, 'PurchaseRequest');
+    }
 
-        if (userRoles.includes('COMPRAS')) {
-          this.logger.log(`Usuário ${user.email} é do setor de COMPRAS.`);
-          can(Action.Read, PrismaPurchaseRequest);
-          can(Action.ApproveLevel1, PrismaPurchaseRequest, { status: 'PENDENTE_COMPRAS' });
-          can(Action.Reject, PrismaPurchaseRequest, { status: 'PENDENTE_COMPRAS' });
-          // can(Action.Update, PrismaPurchaseRequest, { status: 'PENDENTE_COMPRAS' });
-          // can(Action.Manage, PrismaProject); // Example
-          // can(Action.Manage, PrismaItem); // Example
-        }
+    // Setor de Compras pode aprovar requisições pendentes e criar pedidos
+    if (user.roles.some(r => r.role === UserRole.COMPRAS)) {
+      can(Action.Read, 'PurchaseRequest');
+      can(Action.ApprovePurchase, 'PurchaseRequest');
+      can(Action.Reject, 'PurchaseRequest');
+      can(Action.PlaceOrder, 'PurchaseRequest');
+      can(Action.ReceiveItems, 'PurchaseRequest');
+    }
 
-        if (userRoles.includes('GERENCIA')) {
-          this.logger.log(`Usuário ${user.email} é da GERENCIA.`);
-          can(Action.Read, PrismaPurchaseRequest);
-          can(Action.Read, PrismaProject);
-          // can(Action.ApproveLevel2, PrismaPurchaseRequest, { status: 'PENDENTE_GERENCIA' });
-          // can(Action.Reject, PrismaPurchaseRequest, { status: 'PENDENTE_GERENCIA' });
-        }
-      }
+    // Gerência pode aprovar requisições dentro do seu limite
+    if (user.roles.some(r => r.role === UserRole.GERENCIA)) {
+      can(Action.Read, 'PurchaseRequest');
+      can(Action.ApproveManagement, 'PurchaseRequest');
+      can(Action.Reject, 'PurchaseRequest');
     }
 
     return build({
-      detectSubjectType: (item) => item.constructor as ExtractSubjectType<Subjects>,
+      detectSubjectType: (item) => {
+        if (item === 'all') return item;
+        if (item && typeof item === 'object' && 'email' in item) return 'User';
+        if (item && typeof item === 'object' && 'title' in item) return 'PurchaseRequest';
+        if (item && typeof item === 'object' && 'budget' in item) return 'Project';
+        if (item && typeof item === 'object' && 'quantity' in item) return 'Item';
+        try {
+          return (item as any)?.constructor?.name || 'all';
+        } catch {
+          return 'all';
+        }
+      }
     });
   }
 }

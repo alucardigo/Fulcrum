@@ -3,6 +3,15 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { APP_PIPE } from '@nestjs/core';
+
+// Módulos de infraestrutura
+import { LoggerModule } from './logging/logger.module';
+import { SecurityModule } from './security/security.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { RedisCacheModule } from './cache/redis-cache.module';
+import { HealthModule } from './health/health.module';
 
 // Módulos principais (Fase 1 e 2)
 import { AuthModule } from './auth/auth.module';
@@ -17,15 +26,24 @@ import { PurchaseRequestsModule } from './purchaserequests/purchaserequests.modu
 
 @Module({
   imports: [
+    // Configuração do ambiente
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      cache: true,
     }),
-    // Core Modules from earlier phases
+
+    // Módulos de infraestrutura
+    LoggerModule,
+    SecurityModule,
+    MetricsModule,
+    RedisCacheModule,
+    HealthModule,
+
+    // Módulos principais de negócio
     UsersModule,
     AuthModule,
 
-    // Feature Modules - Phase 3
+    // Módulos de funcionalidades - Fase 3
     CaslModule,
     WorkflowModule,
     ProjectsModule,
@@ -36,7 +54,11 @@ import { PurchaseRequestsModule } from './purchaserequests/purchaserequests.modu
   providers: [
     AppService,
     PrismaService, // PrismaService provided here is available to all imported modules
-    // Logger, // Logger is typically instantiated directly: new Logger(Context)
+    Logger,
+    {
+      provide: APP_PIPE,
+      useClass: ZodValidationPipe,
+    },
   ],
 })
 export class AppModule {

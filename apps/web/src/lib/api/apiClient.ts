@@ -10,9 +10,11 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const { accessToken } = useAuthStore.getState();
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (typeof window !== 'undefined') {
+      const { accessToken } = useAuthStore.getState();
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
     }
     return config;
   },

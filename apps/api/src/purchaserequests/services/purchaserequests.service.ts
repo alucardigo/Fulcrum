@@ -1,15 +1,13 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-// ItemsService é injetado no construtor, mas não usado ativamente nos métodos atuais após refatoração do 'create'.
-// Pode ser mantido para futuras funcionalidades de gerenciamento de itens.
 import { ItemsService } from '../../items/services/items.service';
 import { CreatePurchaseRequestDto } from '../dto/create-purchase-request.dto';
-import { PurchaseRequest, Item, RequisicaoCompraStatus, Prisma, User as PrismaUser, Role as PrismaRole, Project as PrismaProject, RequestHistory } from '@prisma/client';
+import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
-import { CaslAbilityFactory, Action, AppAbility, UserWithRoles, Subjects } from '../../casl/casl-ability.factory';
+import { CaslAbilityFactory, Action, AppAbility, UserWithRoles } from '../../casl/casl-ability.factory';
 import { purchaseRequestMachine, PurchaseRequestContext, PurchaseRequestEvent } from '../../workflow/purchase-request.machine';
-import { createActor, EventObject } from 'xstate'; // AnyActorLogic removido pois não é explicitamente usado
+import { createActor, EventObject } from 'xstate';
 
 @Injectable()
 export class PurchaseRequestsService {
@@ -21,8 +19,18 @@ export class PurchaseRequestsService {
     private readonly caslFactory: CaslAbilityFactory,
   ) {}
 
-  async create(createDto: CreatePurchaseRequestDto, userId: string): Promise<PurchaseRequest> {
-    const { title, description, projectId, priority, items: itemsDto } = createDto;
+  async create(createDto: CreatePurchaseRequestDto, userId: string): Promise<any> {
+    const { 
+      title, 
+      description, 
+      projectId, 
+      priority,
+      costCenter,
+      justification,
+      expectedDeliveryDate,
+      items: itemsDto 
+    } = createDto;
+    
     this.logger.log(`Usuário ID: ${userId} criando nova requisição de compra: ${title}`);
 
     if (projectId) {
@@ -35,22 +43,34 @@ export class PurchaseRequestsService {
 
     try {
       const newPurchaseRequest = await this.prisma.$transaction(async (tx) => {
+        // Calcular totalAmount
+        let totalAmount = 0;
+        if (itemsDto && itemsDto.length > 0) {
+          totalAmount = itemsDto.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
+        }
+
         const createdRequest = await tx.purchaseRequest.create({
           data: {
             title,
             description,
             requester: { connect: { id: userId } },
             project: projectId ? { connect: { id: projectId } } : undefined,
-            status: 'RASCUNHO', // Estado inicial da máquina XState (conforme definido na máquina)
-            priority: priority || undefined,
+            status: 'RASCUNHO',
+            priority: priority || 'NORMAL',
+            costCenter,
+            justification,
+            expectedDeliveryDate,
+            totalAmount,
           },
         });
         this.logger.log(`Requisição de Compra ID: ${createdRequest.id} criada (transação).`);
 
+        let totalAmountDecimal = new Decimal(0);
         if (itemsDto && itemsDto.length > 0) {
           for (const itemDto of itemsDto) {
             const unitPriceDecimal = new Decimal(itemDto.unitPrice.toString());
             const totalPrice = unitPriceDecimal.mul(itemDto.quantity);
+            totalAmountDecimal = totalAmountDecimal.add(totalPrice);
             await tx.item.create({
               data: {
                 name: itemDto.name,
@@ -59,7 +79,7 @@ export class PurchaseRequestsService {
                 unitPrice: unitPriceDecimal,
                 totalPrice: totalPrice,
                 supplier: itemDto.supplier,
-                url: itemDto.url,
+                supplierCNPJ: itemDto.supplierCNPJ,
                 purchaseRequest: { connect: { id: createdRequest.id } },
               },
             });
@@ -69,7 +89,29 @@ export class PurchaseRequestsService {
 
         const fullRequest = await tx.purchaseRequest.findUniqueOrThrow({
             where: { id: createdRequest.id },
-            include: { items: true, requester: {select:{id:true, email:true, firstName:true, lastName:true, roles: true}}, project: true },
+            include: { 
+              items: true, 
+              requester: {
+                include: {
+                  roles: true
+                }
+              },
+              project: true,
+              histories: {
+                orderBy: { timestamp: 'desc' },
+                take: 5,
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      email: true,
+                      firstName: true,
+                      lastName: true
+                    }
+                  }
+                }
+              }
+            },
         });
         return fullRequest;
       });
@@ -91,12 +133,29 @@ export class PurchaseRequestsService {
   async findAllForUser(userId: string): Promise<PurchaseRequest[]> {
     this.logger.log(`Buscando todas as requisições de compra para o usuário ID: ${userId}`);
     return this.prisma.purchaseRequest.findMany({
-      where: { requesterId: userId }, // Filtro básico, CASL pode refinar para outros roles
+      where: { requesterId: userId },
       include: {
         items: true,
-        requester: {select:{id:true, email:true, firstName:true, lastName:true, roles: true}},
+        requester: {
+          include: {
+            roles: true
+          }
+        },
         project: true,
-        histories: { orderBy: { timestamp: 'desc' }, take: 5 },
+        histories: {
+          orderBy: { timestamp: 'desc' },
+          take: 5,
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -107,28 +166,60 @@ export class PurchaseRequestsService {
     return this.prisma.purchaseRequest.findMany({
       include: {
         items: true,
-        requester: { select: { id: true, email: true, firstName: true, lastName: true, roles: true } },
+        requester: {
+          include: {
+            roles: true
+          }
+        },
         project: true,
-        histories: { orderBy: { timestamp: 'desc' }, take: 5 },
+        histories: {
+          orderBy: { timestamp: 'desc' },
+          take: 5,
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findOneWithDetails(id: string): Promise<PrismaPurchaseRequest | null> {
-    // Método auxiliar para buscar a requisição com todos os includes necessários para CASL e XState context
+  async findOneWithDetails(id: string): Promise<PurchaseRequest | null> {
     return this.prisma.purchaseRequest.findUnique({
       where: { id },
       include: {
         items: true,
-        requester: { include: { roles: true } }, // Incluir roles do solicitante para CASL
+        requester: {
+          include: {
+            roles: true
+          }
+        },
         project: true,
-        histories: { orderBy: { timestamp: 'desc' } },
+        histories: {
+          orderBy: { timestamp: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        },
       },
     });
   }
 
-  async findOneForUser(id: string, userPerformingAction: UserWithRoles): Promise<PurchaseRequest | null> {
+  async findOneForUser(id: string, userPerformingAction: UserWithRoles): Promise<any> {
     this.logger.log(`Buscando requisição ID: ${id} para usuário ID: ${userPerformingAction.id}`);
     const purchaseRequest = await this.findOneWithDetails(id);
 
@@ -138,7 +229,7 @@ export class PurchaseRequestsService {
     }
 
     const ability = this.caslFactory.createForUser(userPerformingAction);
-    if (!ability.can(Action.Read, purchaseRequest as unknown as ExtractSubjectType<Subjects>)) { // Cast para o tipo correto esperado pelo CASL
+    if (!ability.can(Action.Read, 'PurchaseRequest')) {
       this.logger.warn(`Usuário ID: ${userPerformingAction.id} não tem permissão para ler a requisição ID: ${id}.`);
       throw new ForbiddenException('Você não tem permissão para acessar esta requisição de compra.');
     }
@@ -162,39 +253,34 @@ export class PurchaseRequestsService {
 
     const ability = this.caslFactory.createForUser(performingUser);
 
-    // O tipo PrismaPurchaseRequest (de currentRequestState) é compatível com o que CASL espera via InferSubjects
     const machineContext: PurchaseRequestContext = {
       currentUser: performingUser,
-      requestData: currentRequestState as unknown as ExtractSubjectType<Subjects>, // Cast para o tipo correto
+      requestData: currentRequestState as PurchaseRequest,
       ability: ability,
       errorMessage: undefined,
     };
 
-    const service = createActor(purchaseRequestMachine, {
-        input: machineContext,
-    });
-
-    service.start(currentRequestState.status as any);
+    const service = createActor(purchaseRequestMachine, { input: machineContext });
+    service.start();
 
     this.logger.debug(`Máquina XState para Req ID: ${requestId}. Estado atual: ${service.getSnapshot().value}`);
 
-    const eventToSend: EventObject = { type: eventDto.type, payload: eventDto.payload, notes: eventDto.notes };
-    service.send(eventToSend);
+    const eventToSend = {
+      type: eventDto.type,
+      ...(eventDto.payload ? { payload: eventDto.payload } : {}),
+      ...(eventDto.notes ? { notes: eventDto.notes } : {}),
+    };
+    service.send(eventDto as PurchaseRequestEvent);
 
     const snapshot = service.getSnapshot();
-    const newState = snapshot.value as RequisicaoCompraStatus;
+    const newState = snapshot.value as PurchaseRequestState;
+    const stateChanged = currentRequestState.status !== newState;
 
-    this.logger.debug(`Após evento '${eventDto.type}' para Req ID: ${requestId}, Novo Estado: ${newState}, Mudou?: ${snapshot.changed}`);
+    this.logger.debug(`Após evento '${eventDto.type}' para Req ID: ${requestId}, Novo Estado: ${newState}, Mudou?: ${stateChanged}`);
 
-    if (!snapshot.changed) {
-      const canTransition = service.machine.states[currentRequestState.status as string]?.can(eventToSend.type);
-      if (!canTransition) {
-          this.logger.warn(`Evento '${eventDto.type}' inválido para estado '${currentRequestState.status}' da Req ID: ${requestId}.`);
-          throw new BadRequestException(`A ação '${eventDto.type}' não é permitida para o estado atual da requisição.`);
-      } else {
-          this.logger.warn(`Transição bloqueada por guarda (permissão CASL) para Req ID: ${requestId}, Evento: ${eventDto.type}, Usuário: ${performingUser.email}`);
-          throw new ForbiddenException('Você não tem permissão para realizar esta ação nesta requisição ou neste estado.');
-      }
+    if (!stateChanged) {
+      this.logger.warn(`Evento '${eventDto.type}' inválido para estado '${currentRequestState.status}' da Req ID: ${requestId}.`);
+      throw new BadRequestException(`A ação '${eventDto.type}' não é permitida para o estado atual da requisição.`);
     }
 
     this.logger.log(`Transição bem-sucedida para Req ID: ${requestId}. De '${currentRequestState.status}' para '${newState}'.`);
@@ -204,7 +290,29 @@ export class PurchaseRequestsService {
         this.prisma.purchaseRequest.update({
           where: { id: requestId },
           data: { status: newState },
-          include: { items: true, requester: {select:{id:true, email:true, firstName:true, lastName:true, roles: true}}, project: true, histories: { orderBy: { timestamp: 'desc' }, take: 5 } },
+          include: {
+            items: true,
+            requester: {
+              include: {
+                roles: true
+              }
+            },
+            project: true,
+            histories: {
+              orderBy: { timestamp: 'desc' },
+              take: 5,
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true
+                  }
+                }
+              }
+            }
+          }
         }),
         this.prisma.requestHistory.create({
           data: {
@@ -212,8 +320,9 @@ export class PurchaseRequestsService {
             userId: performingUser.id,
             previousState: currentRequestState.status,
             newState: newState,
+            actionType: eventDto.type,
             actionDescription: `Evento: ${eventDto.type}${eventDto.payload?.reason ? ` - Motivo: ${eventDto.payload.reason}` : ''}`,
-            notes: eventDto.notes,
+            metadata: eventDto.payload ? JSON.stringify(eventDto.payload) : undefined,
           },
         }),
       ]);
@@ -223,9 +332,9 @@ export class PurchaseRequestsService {
       return updatedRequest;
 
     } catch (error) {
-        this.logger.error(`Erro ao persistir novo estado/histórico para Req ID: ${requestId}`, error.stack);
-        service.stop();
-        throw new InternalServerErrorException('Erro ao atualizar o estado da requisição.');
+      this.logger.error(`Erro ao persistir novo estado/histórico para Req ID: ${requestId}`, error.stack);
+      service.stop();
+      throw new InternalServerErrorException('Erro ao atualizar o estado da requisição.');
     }
   }
 }

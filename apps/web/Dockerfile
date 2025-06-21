@@ -50,4 +50,5 @@ COPY --from=builder /usr/src/app/tsconfig.json ./tsconfig.json
 EXPOSE 3000
 
 # Comando para iniciar a aplicação Next.js em modo de produção
+USER non-root
 CMD ["npm", "run", "start"]

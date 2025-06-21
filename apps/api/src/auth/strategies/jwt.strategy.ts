@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/services/users.service';
-import { User as PrismaUser, Role as PrismaRole } from '@prisma/client'; // Role might not be needed here directly
 import { UserWithRoles } from '../../casl/casl-ability.factory';
 
 @Injectable()
@@ -32,9 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         throw new UnauthorizedException('Token JWT malformado ou ID do usuário ausente.');
     }
 
-    // UsersService.findById already returns Omit<User, 'password'> & { roles: Role[] }
-    // which is compatible with UserWithRoles (PrismaUser & { roles: PrismaRole[] })
-    // as long as PrismaUser is the base for Omit.
     const user = await this.usersService.findById(payload.sub);
 
     if (!user) {
@@ -48,6 +44,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     this.logger.log(`JwtStrategy: Usuário ${user.email} autenticado e recuperado com papéis.`);
-    return user as UserWithRoles; // Cast is safe if findById ensures roles and omits password
+    return user as UserWithRoles;
   }
 }

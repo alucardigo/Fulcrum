@@ -1,31 +1,96 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, IsArray, ValidateNested, ArrayMinSize, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
-import { CreateItemForRequestDto } from './create-item-for-request.dto';
-import { RequisicaoCompraPrioridade } from '@prisma/client';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import { PurchaseRequestPriority } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class CreatePurchaseRequestDto {
-  @IsString({ message: 'O título da requisição deve ser uma string.' })
-  @IsNotEmpty({ message: 'O título da requisição não pode estar vazio.' })
-  @MaxLength(200, { message: 'O título da requisição deve ter no máximo 200 caracteres.' })
+// Schema para validação
+const CreatePurchaseRequestSchema = z.object({
+  title: z.string().min(3).max(200).nonempty('O título da requisição não pode estar vazio.'),
+  description: z.string().max(1000).optional(),
+  priority: z.nativeEnum(PurchaseRequestPriority),
+  projectId: z.string().cuid().optional(),
+  costCenter: z.string().optional(),
+  justification: z.string().min(10).max(2000),
+  expectedDeliveryDate: z.date().optional(),
+  items: z.array(z.object({
+    name: z.string().min(3).max(200),
+    description: z.string().max(1000).optional(),
+    quantity: z.number().int().positive(),
+    unitPrice: z.number().positive(),
+    supplier: z.string().optional(),
+    supplierCNPJ: z.string().regex(/^\d{14}$/, 'CNPJ inválido').optional(),
+  }))
+});
+
+// DTO Class
+export class CreatePurchaseRequestDto extends createZodDto(CreatePurchaseRequestSchema) {
+  @ApiProperty({
+    example: 'Compra de laptops',
+    description: 'Título da requisição de compra'
+  })
   title: string;
 
-  @IsString({ message: 'A descrição da requisição deve ser uma string.' })
-  @IsOptional()
-  @MaxLength(1000, { message: 'A descrição da requisição deve ter no máximo 1000 caracteres.' })
+  @ApiProperty({
+    example: 'Aquisição de 10 laptops para o time de desenvolvimento',
+    description: 'Descrição detalhada da requisição',
+    required: false
+  })
   description?: string;
 
-  @IsString()
-  @IsOptional()
-  // @IsCuid({ message: 'O ID do projeto deve ser um CUID válido.' }) // Consider adding class-validator-cuid or similar
+  @ApiProperty({
+    enum: PurchaseRequestPriority,
+    example: 'NORMAL',
+    description: 'Prioridade da requisição'
+  })
+  priority: PurchaseRequestPriority;
+
+  @ApiProperty({
+    example: 'ckwq3c9p30000jkr9j8q1q1q1',
+    description: 'ID do projeto relacionado',
+    required: false
+  })
   projectId?: string;
 
-  @IsOptional()
-  @IsEnum(RequisicaoCompraPrioridade, { message: 'Prioridade inválida. Valores válidos: BAIXA, MEDIA, ALTA' })
-  priority?: RequisicaoCompraPrioridade;
+  @ApiProperty({
+    example: 'CC-001',
+    description: 'Centro de custo',
+    required: false
+  })
+  costCenter?: string;
 
-  @IsArray({ message: 'Os itens devem ser uma lista.' })
-  @ValidateNested({ each: true, message: 'Cada item na lista deve ser válido.' })
-  @ArrayMinSize(1, { message: 'A requisição deve ter pelo menos um item.' })
-  @Type(() => CreateItemForRequestDto)
-  items: CreateItemForRequestDto[];
+  @ApiProperty({
+    example: 'Necessário para equipar novos desenvolvedores',
+    description: 'Justificativa para a compra'
+  })
+  justification: string;
+
+  @ApiProperty({
+    example: '2024-12-31',
+    description: 'Data prevista para entrega',
+    required: false
+  })
+  expectedDeliveryDate?: Date;
+
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Laptop Dell XPS' },
+        description: { type: 'string', example: 'Laptop Dell XPS 15" 32GB RAM' },
+        quantity: { type: 'number', example: 10 },
+        unitPrice: { type: 'number', example: 8000.00 },
+        supplier: { type: 'string', example: 'Dell Computadores' },
+        supplierCNPJ: { type: 'string', example: '72381189000110' }
+      }
+    }
+  })
+  items: {
+    name: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+    supplier?: string;
+    supplierCNPJ?: string;
+  }[];
 }

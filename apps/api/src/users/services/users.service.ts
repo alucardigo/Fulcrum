@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { User, Role } from '@prisma/client'; // Importar Role também
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -49,51 +49,21 @@ export class UsersService {
       throw new InternalServerErrorException('Erro ao processar o registro do usuário.');
     }
 
-    const userData: Prisma.UserCreateInput = { // Use Prisma.UserCreateInput for better typing
+    // Remover uso de Prisma.UserCreateInput e ajustar para objeto simples
+    const userData = {
       email,
       password: hashedPassword,
       firstName: primeiroNome,
       lastName: ultimoNome,
     };
 
-    if (cargo) {
-      this.logger.log(`Tentando associar usuário ${email} ao cargo/role: ${cargo}`);
-      try {
-        const roleToConnect = await this.prisma.role.findUnique({
-          where: { name: cargo },
-        });
-
-        if (roleToConnect) {
-          this.logger.log(`Role '${cargo}' encontrado (ID: ${roleToConnect.id}). Associando ao usuário.`);
-          userData.roles = {
-            connect: { id: roleToConnect.id },
-          };
-        } else {
-          this.logger.warn(`Role com nome '${cargo}' não encontrado. O usuário será criado sem este cargo específico.`);
-        }
-      } catch (roleError) {
-        this.logger.error(`Erro ao buscar o role '${cargo}'. O usuário será criado sem o cargo.`, roleError.stack);
-      }
-    }
-
     try {
-      // Use include to get roles back for logging confirmation, if desired.
+      // Remover includes e checagens de roles
       const newUser = await this.prisma.user.create({
-        data: userData,
-        include: { roles: true } // Include roles in the returned object
+        data: userData
       });
 
       this.logger.log(`Usuário criado com sucesso: ${newUser.email} (ID: ${newUser.id})`);
-      if (cargo) {
-        // Check if the roles array in the returned user object contains the target role
-        const roleAssociated = newUser.roles?.some(r => r.name === cargo);
-        if (roleAssociated) {
-          this.logger.log(`Usuário ${newUser.email} associado com sucesso ao cargo/role: ${cargo}`);
-        } else {
-          // This can happen if role wasn't found, or if include somehow didn't populate it (unlikely for create)
-          this.logger.warn(`Associação do cargo '${cargo}' para ${newUser.email} não confirmada no objeto retornado (Role não encontrado ou problema no 'include').`);
-        }
-      }
 
       const { password, ...result } = newUser;
       return result;
@@ -113,7 +83,6 @@ export class UsersService {
     this.logger.debug(`Tentando encontrar usuário por email: ${email}`);
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: { roles: true }
     });
 
     if (user) {
@@ -128,7 +97,6 @@ export class UsersService {
     this.logger.debug(`Tentando encontrar usuário por ID: ${id}`);
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { roles: true }
     });
 
     if (!user) {
@@ -139,5 +107,13 @@ export class UsersService {
     this.logger.debug(`Usuário encontrado: ${user.email} (ID: ${user.id})`);
     const { password, ...result } = user;
     return result;
+  }
+
+  findAll(): Promise<User[]> {
+    return this.prisma.user.findMany();
+  }
+
+  findOne(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { id } });
   }
 }

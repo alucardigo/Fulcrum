@@ -1,105 +1,160 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-// O enum RoleName não existe, usaremos strings para nomes de papéis.
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-interface RoleData {
-  name: string;
-  permissions: string; // Armazenar como string JSON
-}
-
-const rolesToSeed: RoleData[] = [
-  {
-    name: 'ADMINISTRADOR',
-    permissions: JSON.stringify({
-      description: 'Acesso total a todos os recursos e configurações do sistema.',
-      rules: [{ action: 'manage', subject: 'all' }]
-    }),
-  },
-  {
-    name: 'SOLICITANTE',
-    permissions: JSON.stringify({
-      description: 'Pode criar, visualizar e gerenciar suas próprias requisições de compra.',
-      rules: [
-        { action: 'create', subject: 'PurchaseRequest' },
-        { action: 'read', subject: 'PurchaseRequest', conditions: { requesterId: '{USER_ID}' } }, // Placeholder para USER_ID
-        { action: 'update', subject: 'PurchaseRequest', conditions: { requesterId: '{USER_ID}', status: 'RASCUNHO' } },
-        { action: 'submit', subject: 'PurchaseRequest', conditions: { requesterId: '{USER_ID}', status: 'RASCUNHO' } },
-        { action: 'read', subject: 'User', conditions: { id: '{USER_ID}' } },
-        { action: 'update', subject: 'User', conditions: { id: '{USER_ID}' } },
-      ]
-    }),
-  },
-  {
-    name: 'COMPRAS',
-    permissions: JSON.stringify({
-      description: 'Pode visualizar todas as requisições, aprovar/rejeitar no primeiro nível.',
-      rules: [
-        { action: 'read', subject: 'PurchaseRequest' },
-        { action: 'approve_level_1', subject: 'PurchaseRequest', conditions: { status: 'PENDENTE_COMPRAS' } },
-        { action: 'reject', subject: 'PurchaseRequest', conditions: { status: 'PENDENTE_COMPRAS' } },
-        { action: 'read', subject: 'Project' }, // Exemplo: pode ver projetos
-      ]
-    }),
-  },
-  {
-    name: 'GERENCIA',
-    permissions: JSON.stringify({
-      description: 'Pode visualizar todas as requisições e projetos, aprovar/rejeitar no segundo nível.',
-      rules: [
-        { action: 'read', subject: 'PurchaseRequest' },
-        { action: 'read', subject: 'Project' },
-        // { action: 'approve_level_2', subject: 'PurchaseRequest', conditions: { status: 'PENDENTE_GERENCIA' } },
-        // { action: 'reject', subject: 'PurchaseRequest', conditions: { status: 'PENDENTE_GERENCIA' } },
-      ]
-    }),
-  },
-];
-
 async function main() {
-  console.log(`Iniciando seeding de Roles (${rolesToSeed.map(r => r.name).join(', ')})...`);
+  console.log('Iniciando seeding...');
 
-  for (const roleData of rolesToSeed) {
-    const role = await prisma.role.upsert({
-      where: { name: roleData.name },
-      update: { permissions: roleData.permissions },
-      create: {
-        name: roleData.name,
-        permissions: roleData.permissions,
-      },
-    });
-    console.log(`Role '${role.name}' (ID: ${role.id}) criado/atualizado com sucesso.`);
-  }
+  // Limpar banco de dados
+  await prisma.requestHistory.deleteMany();
+  await prisma.item.deleteMany();
+  await prisma.purchaseRequest.deleteMany();
+  await prisma.project.deleteMany();
+  await prisma.userRoleAssignment.deleteMany();
+  await prisma.user.deleteMany();
 
-  console.log('Seeding de Roles concluído.');
+  console.log('Banco de dados limpo.');
 
-  // Exemplo de criação de usuário admin (adaptar e descomentar se necessário)
-  // const adminEmail = 'admin@fulcrum.com';
-  // const adminExists = await prisma.user.findUnique({ where: { email: adminEmail } });
-  // if (!adminExists) {
-  //   const bcrypt = await import('bcrypt'); // Importar bcrypt dinamicamente
-  //   const saltRounds = process.env.SALT_ROUNDS ? parseInt(process.env.SALT_ROUNDS, 10) : 10;
-  //   const hashedPassword = await bcrypt.hash('AdminP@ssw0rd123!', saltRounds);
-  //   const adminUser = await prisma.user.create({
-  //     data: {
-  //       email: adminEmail,
-  //       password: hashedPassword,
-  //       firstName: 'Admin',
-  //       lastName: 'Fulcrum',
-  //       isActive: true,
-  //       roles: { connect: { name: 'ADMINISTRADOR' } },
-  //     },
-  //   });
-  //   console.log(`Usuário administrador '${adminUser.email}' criado com ID: ${adminUser.id}`);
-  // } else {
-  //   console.log(`Usuário administrador '${adminEmail}' já existe.`);
-  // }
+  // Criar usuários com diferentes papéis
+  const admin = await prisma.user.create({
+    data: {
+      email: 'admin@fulcrum.com',
+      password: await bcrypt.hash('admin123', 10),
+      firstName: 'Admin',
+      lastName: 'User',
+      department: 'TI',
+      costCenter: 'CC001',
+      approvalLimit: 100000,
+      roles: {
+        create: {
+          role: 'ADMINISTRADOR'
+        }
+      }
+    }
+  });
+  console.log('Usuário Admin criado:', admin.email);
+
+  const gerente = await prisma.user.create({
+    data: {
+      email: 'gerente@fulcrum.com',
+      password: await bcrypt.hash('gerente123', 10),
+      firstName: 'Gerente',
+      lastName: 'Projetos',
+      department: 'Engenharia',
+      costCenter: 'CC002',
+      approvalLimit: 50000,
+      roles: {
+        create: {
+          role: 'GERENCIA'
+        }
+      }
+    }
+  });
+  console.log('Usuário Gerente criado:', gerente.email);
+
+  const comprador = await prisma.user.create({
+    data: {
+      email: 'comprador@fulcrum.com',
+      password: await bcrypt.hash('comprador123', 10),
+      firstName: 'Comprador',
+      lastName: 'Principal',
+      department: 'Compras',
+      costCenter: 'CC003',
+      approvalLimit: 10000,
+      roles: {
+        create: {
+          role: 'COMPRAS'
+        }
+      }
+    }
+  });
+  console.log('Usuário Comprador criado:', comprador.email);
+
+  const solicitante = await prisma.user.create({
+    data: {
+      email: 'solicitante@fulcrum.com',
+      password: await bcrypt.hash('solicitante123', 10),
+      firstName: 'Solicitante',
+      lastName: 'Padrão',
+      department: 'Marketing',
+      costCenter: 'CC004',
+      roles: {
+        create: {
+          role: 'SOLICITANTE'
+        }
+      }
+    }
+  });
+  console.log('Usuário Solicitante criado:', solicitante.email);
+
+  // Criar um projeto
+  const projeto = await prisma.project.create({
+    data: {
+      name: 'Projeto Piloto',
+      code: 'PILOT-2024',
+      description: 'Projeto piloto para validação da plataforma',
+      budget: 100000,
+      remainingBudget: 100000,
+      startDate: new Date(),
+      endDate: new Date(2024, 11, 31),
+      status: 'ACTIVE',
+      ownerId: gerente.id,
+      costCenter: 'CC002'
+    }
+  });
+  console.log('Projeto criado:', projeto.name);
+
+  // Criar uma requisição de compra
+  const requisicao = await prisma.purchaseRequest.create({
+    data: {
+      title: 'Equipamentos de TI',
+      description: 'Aquisição de equipamentos para novo time',
+      status: 'PENDENTE_COMPRAS',
+      priority: 'NORMAL',
+      totalAmount: 15000,
+      requesterId: solicitante.id,
+      projectId: projeto.id,
+      costCenter: 'CC004',
+      justification: 'Necessário para expansão do time',
+      items: {
+        create: [
+          {
+            name: 'Notebook Dell Latitude',
+            description: 'Notebook Dell Latitude 5420, i7, 16GB RAM, 512GB SSD',
+            quantity: 3,
+            unitPrice: 5000,
+            totalPrice: 15000,
+            supplier: 'Dell Computadores',
+            supplierCNPJ: '72381189000110',
+            category: 'EQUIPAMENTOS',
+          }
+        ]
+      }
+    }
+  });
+  console.log('Requisição de compra criada:', requisicao.title);
+
+  // Criar histórico da requisição
+  const historico = await prisma.requestHistory.create({
+    data: {
+      actionType: 'CREATE',
+      actionDescription: 'Requisição criada',
+      previousState: null,
+      newState: JSON.stringify({ status: 'PENDENTE_COMPRAS' }),
+      userId: solicitante.id,
+      purchaseRequestId: requisicao.id,
+    }
+  });
+  console.log('Histórico criado:', historico.actionType);
+
+  console.log('Seeding concluído com sucesso!');
 }
 
 main()
   .catch((e) => {
     console.error('Erro durante o seeding:', e);
-    process.exit(1); // Manter exit 1 aqui para falhar o processo de seed se houver erro
+    process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();

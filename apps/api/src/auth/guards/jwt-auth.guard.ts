@@ -5,7 +5,12 @@ import { AuthGuard } from '@nestjs/passport';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
-  handleRequest(err, user, info, context: ExecutionContext) {
+  handleRequest<TUser = any>(
+    err: any, 
+    user: TUser, 
+    info: any, 
+    context: ExecutionContext
+  ): TUser {
     if (err || !user) {
       this.logger.warn(`JwtAuthGuard: Autenticação JWT falhou. Info: ${info?.message || 'Nenhuma info.'}. Erro: ${err?.message}`);
       let message = 'Acesso não autorizado.';
@@ -16,7 +21,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       }
       throw err || new UnauthorizedException(message);
     }
-    this.logger.log(`JwtAuthGuard: Autenticação JWT bem-sucedida para: ${user?.email}`);
+    this.logger.log(`JwtAuthGuard: Autenticação JWT bem-sucedida para: ${(user as any)?.email}`);
     return user;
   }
 }
