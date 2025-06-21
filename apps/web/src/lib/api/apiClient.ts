@@ -29,10 +29,14 @@ apiClient.interceptors.response.use(
     const requisicaoOriginal = error.config;
     if (error.response?.status === 401 && !requisicaoOriginal._retry) {
       requisicaoOriginal._retry = true;
-      console.error('Erro na API: 401 Não Autorizado. Limpando autenticação.');
-      useAuthStore.getState().limparAutenticacao();
+      console.error('API Error: 401 Unauthorized. Clearing authentication.');
+      // Ensure the correct method name from the updated authStore is used.
+      // Assuming it's now clearAuthentication as per recent authStore updates.
+      useAuthStore.getState().clearAuthentication();
       if (typeof window !== 'undefined') {
-        // window.location.href = '/login'; // Comentado para não causar hard refresh durante testes
+        // Consider a more Next.js-friendly way to redirect if needed, e.g., via router context or a dedicated service
+        // For now, direct redirect is commented out.
+        // window.location.href = '/login';
       }
     }
     return Promise.reject(error);

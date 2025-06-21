@@ -2,8 +2,11 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import useRequestStore from '../../../stores/useRequestStore'; // Adjust path as necessary
+import { useAuthStore } from '../../../stores/authStore'; // Import useAuthStore
 import { PurchaseRequestWithHistory } from '../../../stores/useRequestStore'; // Assuming type is exported
+import toast, { Toaster } from 'react-hot-toast'; // For potential notifications
 
 // A simple StatusBadge component (can be moved to a shared components folder)
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -30,10 +33,18 @@ const LoadingSpinner: React.FC = () => (
 
 const RequestsListPage = () => {
   const { requests, isLoading, error, fetchRequests } = useRequestStore();
+  const { clearAuthentication, user } = useAuthStore(); // Get clearAuthentication and user
+  const router = useRouter(); // Initialize router
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  const handleLogout = () => {
+    clearAuthentication();
+    toast.success('Logout bem-sucedido!');
+    router.push('/login'); // Redirect to login page
+  };
 
   if (isLoading) {
     return (
@@ -55,13 +66,26 @@ const RequestsListPage = () => {
 
   return (
     <div className="container mx-auto p-4">
+      {/* Add Toaster for notifications from logout or other actions */}
+      <Toaster position="top-right" reverseOrder={false} />
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Minhas Requisições</h1>
-        <Link href="/dashboard/requests/new" legacyBehavior>
-          <a className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out">
-            Nova Requisição
-          </a>
-        </Link>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Minhas Requisições</h1>
+          {user && <p className="text-sm text-gray-600">Logado como: {user.email}</p>}
+        </div>
+        <div className="flex items-center space-x-4">
+          <Link href="/dashboard/requests/new" legacyBehavior>
+            <a className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out">
+              Nova Requisição
+            </a>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {requests.length === 0 ? (
