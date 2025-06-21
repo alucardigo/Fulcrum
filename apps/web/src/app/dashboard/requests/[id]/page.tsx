@@ -209,37 +209,57 @@ const RequestDetailsPage = () => {
 
     const { status } = currentRequest;
 
-    // Assuming status values like 'RASCUNHO', 'PENDENTE_COMPRAS', 'PENDENTE_GERENCIA', 'APROVADO'
-    // These should ideally come from an enum like PurchaseStatus
+    // Using explicit event types for clarity, backend must support these.
+    // The `handleAction` function will construct the event object for `transitionRequestState`.
     if (status === 'RASCUNHO' && userHasRole(UserRole.SOLICITANTE)) {
-      return <button onClick={() => handleAction(PurchaseStatus.PENDENTE_COMPRAS)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submeter Requisição</button>;
+      return <button onClick={() => handleActionClick('SUBMIT')} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submeter Requisição</button>;
     }
     if (status === PurchaseStatus.PENDENTE_COMPRAS && userHasRole(UserRole.COMPRAS)) {
       return (
         <div className="space-x-3">
-          <button onClick={() => handleAction(PurchaseStatus.PENDENTE_GERENCIA)} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Aprovar (Nível 1)</button>
-          <button onClick={() => openRejectionModal(PurchaseStatus.REJEITADA)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Rejeitar</button>
+          <button onClick={() => handleActionClick('APPROVE_LVL1')} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Aprovar (Compras)</button>
+          <button onClick={() => openRejectionModalWithAction('REJECT_LVL1')} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Rejeitar (Compras)</button>
         </div>
       );
     }
     if (status === PurchaseStatus.PENDENTE_GERENCIA && userHasRole(UserRole.GERENCIA)) {
       return (
         <div className="space-x-3">
-          <button onClick={() => handleAction(PurchaseStatus.APROVADA)} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Aprovar (Nível Final)</button>
-          <button onClick={() => openRejectionModal(PurchaseStatus.REJEITADA)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Rejeitar</button>
+          <button onClick={() => handleActionClick('APPROVE_LVL2')} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Aprovar (Gerência)</button>
+          <button onClick={() => openRejectionModalWithAction('REJECT_LVL2')} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Rejeitar (Gerência)</button>
         </div>
       );
     }
     if (status === PurchaseStatus.APROVADA && userHasRole(UserRole.COMPRAS)) {
-      // Assuming "Marcar como Concluído" means it's fully delivered or order placed
-      return <button onClick={() => handleAction(PurchaseStatus.PEDIDO_REALIZADO)} className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Marcar Pedido Realizado</button>;
+      return <button onClick={() => handleActionClick('PLACE_ORDER')} className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Marcar Pedido Realizado</button>;
     }
      if (status === PurchaseStatus.PEDIDO_REALIZADO && userHasRole(UserRole.COMPRAS)) {
-      return <button onClick={() => handleAction(PurchaseStatus.ENTREGUE_TOTALMENTE)} className="bg-emerald-500 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded">Marcar como Entregue</button>;
+      return <button onClick={() => handleActionClick('MARK_DELIVERED')} className="bg-emerald-500 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded">Marcar como Entregue Totalmente</button>;
     }
-
+    // Add more states and actions as needed, e.g., CANCEL for SOLICITANTE on RASCUNHO/PENDENTE_COMPRAS
 
     return <p className="text-gray-600 italic">Nenhuma ação disponível para si neste momento para o estado "{status}".</p>;
+  };
+
+  // Wrapper for simple actions
+  const handleActionClick = (eventType: string) => {
+    if (!id || !currentRequest) return;
+    transitionRequestState(id, { type: eventType });
+  };
+
+  // Wrapper for rejection to store event type before opening modal
+  const openRejectionModalWithAction = (eventType: string) => {
+    setActionToConfirm({ action: 'reject', eventType }); // Store eventType instead of newStatus
+    setIsRejectionModalOpen(true);
+  };
+
+  // Modified handleRejectionSubmit
+   const handleRejectionSubmit = (reason: string) => {
+    if (actionToConfirm && id) {
+      transitionRequestState(id, { type: actionToConfirm.eventType, payload: { rejectionReason: reason } });
+    }
+    setIsRejectionModalOpen(false);
+    setActionToConfirm(null);
   };
 
 
