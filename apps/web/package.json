@@ -10,10 +10,13 @@
     "test": "echo \"Tests for web package not yet implemented\""
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
     "axios": "^1.10.0",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.58.1",
+    "zod": "^3.25.67",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
