@@ -141,7 +141,7 @@ jobs:
           format: 'HTML'
           
       - name: Upload security analysis results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-report
           path: reports/
@@ -170,7 +170,7 @@ jobs:
         run: pnpm build
         
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
