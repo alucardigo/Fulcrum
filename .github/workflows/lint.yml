@@ -24,7 +24,7 @@ jobs:
 
       # Configurar pnpm conforme especificado no packageManager do root package.json
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8 # Especificar a versão maior do pnpm (8.0.0 no nosso caso)
           run_install: false # Não executar pnpm install automaticamente aqui
