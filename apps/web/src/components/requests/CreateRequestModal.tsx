@@ -178,7 +178,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ isOpen, onClose
                       id={`itens.${index}.precoUnitario`}
                       type="number"
                        step="0.01"
-                      {...register(`itens.${index}.precoUnitario`, { valueAsNumber: true,setValueAs: v => v === '' ? undefined : parseFloat(v) })}
+                      {...register(`itens.${index}.precoUnitario`, { setValueAs: v => v === '' ? undefined : parseFloat(v) })}
                       className={`mt-1 block w-full px-2 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500`}
                     />
                      {errors.itens?.[index]?.precoUnitario && <p className="mt-1 text-xs text-red-600">{errors.itens[index]?.precoUnitario?.message}</p>}

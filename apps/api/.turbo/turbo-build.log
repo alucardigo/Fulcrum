@@ -1,0 +1,200 @@
+
+> api@0.0.1 prebuild C:\Users\USUARIO\Fulcrum\Fulcrum\apps\api
+> rimraf dist
+
+
+> api@0.0.1 build C:\Users\USUARIO\Fulcrum\Fulcrum\apps\api
+> nest build
+
+[96msrc/auth/controllers/auth.controller.ts[0m:[93m8[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+Found 47 error(s).
+
+
+[7m8[0m import { User as UserModel } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/auth/services/auth.service.ts[0m:[93m5[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m5[0m import { User } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/auth/strategies/local.strategy.ts[0m:[93m5[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m5[0m import { User } from '@prisma/client';
+[7m [0m [91m         ~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m3[0m:[93m18[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m3[0m import { Prisma, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
+[7m [0m [91m                 ~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m3[0m:[93m38[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+[7m3[0m import { Prisma, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
+[7m [0m [91m                                     ~~~~~~~~~~~~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m3[0m:[93m80[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Project'.
+
+[7m3[0m import { Prisma, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
+[7m [0m [91m                                                                               ~~~~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m3[0m:[93m106[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Item'.
+
+[7m3[0m import { Prisma, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
+[7m [0m [91m                                                                                                         ~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m16[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+[7m16[0m import { PurchaseRequestState, UserRole as PrismaUserRole } from '@prisma/client';
+[7m  [0m [91m         ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m16[0m:[93m32[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+[7m16[0m import { PurchaseRequestState, UserRole as PrismaUserRole } from '@prisma/client';
+[7m  [0m [91m                               ~~~~~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m54[0m:[93m36[0m - [91merror[0m[90m TS2694: [0mNamespace '"C:/Users/USUARIO/Fulcrum/Fulcrum/node_modules/.pnpm/@prisma+client@6.10.1_prism_19e62450778ed551687d5daae39b8a21/node_modules/.prisma/client/default".Prisma' has no exported member 'UserGetPayload'.
+
+[7m54[0m export type UserWithRoles = Prisma.UserGetPayload<{
+[7m  [0m [91m                                   ~~~~~~~~~~~~~~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m74[0m:[93m102[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m74[0m       `Construindo habilidades para usuário: ${user.email} (ID: ${user.id}), Roles: ${user.roles.map(r => r.role).join(', ')}`
+[7m  [0m [91m                                                                                                     ~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m78[0m:[93m25[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m78[0m     if (user.roles.some(r => r.role === UserRole.ADMINISTRADOR)) {
+[7m  [0m [91m                        ~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m83[0m:[93m25[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m83[0m     if (user.roles.some(r => r.role === UserRole.SOLICITANTE)) {
+[7m  [0m [91m                        ~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m91[0m:[93m25[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m91[0m     if (user.roles.some(r => r.role === UserRole.COMPRAS)) {
+[7m  [0m [91m                        ~[0m
+[96msrc/casl/casl-ability.factory.ts[0m:[93m104[0m:[93m25[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+[7m104[0m     if (user.roles.some(r => r.role === UserRole.GERENCIA)) {
+[7m   [0m [91m                        ~[0m
+[96msrc/items/services/items.service.ts[0m:[93m5[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Item'.
+
+[7m5[0m import { Item, Prisma } from '@prisma/client'; // Import Prisma for Prisma.Decimal
+[7m [0m [91m         ~~~~[0m
+[96msrc/items/services/items.service.ts[0m:[93m96[0m:[93m32[0m - [91merror[0m[90m TS2694: [0mNamespace '"C:/Users/USUARIO/Fulcrum/Fulcrum/node_modules/.pnpm/@prisma+client@6.10.1_prism_19e62450778ed551687d5daae39b8a21/node_modules/.prisma/client/default".Prisma' has no exported member 'ItemUpdateInput'.
+
+[7m96[0m     const dataToUpdate: Prisma.ItemUpdateInput = { ...updateItemDto };
+[7m  [0m [91m                               ~~~~~~~~~~~~~~~[0m
+[96msrc/projects/services/projects.service.ts[0m:[93m5[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Project'.
+
+[7m5[0m import { Project, User, Prisma } from '@prisma/client'; // User para tipar ownerId, Prisma para tipos de input
+[7m [0m [91m         ~~~~~~~[0m
+[96msrc/projects/services/projects.service.ts[0m:[93m5[0m:[93m19[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m5[0m import { Project, User, Prisma } from '@prisma/client'; // User para tipar ownerId, Prisma para tipos de input
+[7m [0m [91m                  ~~~~[0m
+[96msrc/projects/services/projects.service.ts[0m:[93m22[0m:[93m52[0m - [91merror[0m[90m TS2339: [0mProperty 'Decimal' does not exist on type 'typeof Prisma'.
+
+[7m22[0m       budget: createProjectDto.budget ? new Prisma.Decimal(createProjectDto.budget) : 0,
+[7m  [0m [91m                                                   ~~~~~~~[0m
+[96msrc/projects/services/projects.service.ts[0m:[93m63[0m:[93m81[0m - [91merror[0m[90m TS2339: [0mProperty 'Decimal' does not exist on type 'typeof Prisma'.
+
+[7m63[0m     if (updateProjectDto.budget !== undefined) dataToUpdate.budget = new Prisma.Decimal(updateProjectDto.budget);
+[7m  [0m [91m                                                                                ~~~~~~~[0m
+[96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m7[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+[7m7[0m import { PurchaseRequest as PurchaseRequestModel, User as PrismaUser } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m7[0m:[93m51[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m7[0m import { PurchaseRequest as PurchaseRequestModel, User as PrismaUser } from '@prisma/client';
+[7m [0m [91m                                                  ~~~~[0m
+[96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m74[0m:[93m55[0m - [91merror[0m[90m TS7006: [0mParameter 'role' implicitly has an 'any' type.
+
+[7m74[0m     const isAdminOrManagerOrCompras = user.roles.some(role =>
+[7m  [0m [91m                                                      ~~~~[0m
+[96msrc/purchaserequests/dto/create-purchase-request.dto.ts[0m:[93m3[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestPriority'.
+
+[7m3[0m import { PurchaseRequestPriority } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m27[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Item'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m                          ~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m33[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m                                ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m55[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestPriority'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m                                                      ~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m88[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m                                                                                       ~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m108[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Project'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m                                                                                                           ~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m5[0m:[93m134[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'RequestHistory'.
+
+[7m5[0m import { PurchaseRequest, Item, PurchaseRequestState, PurchaseRequestPriority, Prisma, User as PrismaUser, Project as PrismaProject, RequestHistory } from '@prisma/client';
+[7m [0m [91m                                                                                                                                     ~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m45[0m:[93m72[0m - [91merror[0m[90m TS7006: [0mParameter 'tx' implicitly has an 'any' type.
+
+[7m45[0m       const newPurchaseRequest = await this.prisma.$transaction(async (tx) => {
+[7m  [0m [91m                                                                       ~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m124[0m:[93m35[0m - [91merror[0m[90m TS2339: [0mProperty 'PrismaClientKnownRequestError' does not exist on type 'typeof Prisma'.
+
+[7m124[0m       if (error instanceof Prisma.PrismaClientKnownRequestError) {
+[7m   [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m290[0m:[93m32[0m - [91merror[0m[90m TS2694: [0mNamespace '"C:/Users/USUARIO/Fulcrum/Fulcrum/node_modules/.pnpm/@prisma+client@6.10.1_prism_19e62450778ed551687d5daae39b8a21/node_modules/.prisma/client/default".Prisma' has no exported member 'PurchaseRequestUpdateInput'.
+
+[7m290[0m       const updateData: Prisma.PurchaseRequestUpdateInput = {
+[7m   [0m [91m                               ~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m322[0m:[93m83[0m - [91merror[0m[90m TS7006: [0mParameter 'tx' implicitly has an 'any' type.
+
+[7m322[0m       const [updatedRequest, _historyLog] = await this.prisma.$transaction(async (tx) => {
+[7m   [0m [91m                                                                                  ~~[0m
+[96msrc/users/controllers/users.controller.ts[0m:[93m4[0m:[93m32[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../casl/abilities.guard' or its corresponding type declarations.
+
+[7m4[0m import { AbilitiesGuard } from '../../casl/abilities.guard';
+[7m [0m [91m                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/users/controllers/users.controller.ts[0m:[93m5[0m:[93m32[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../casl/check-abilities.decorator' or its corresponding type declarations.
+
+[7m5[0m import { CheckAbilities } from '../../casl/check-abilities.decorator';
+[7m [0m [91m                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/users/controllers/users.controller.ts[0m:[93m7[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m7[0m import { User as UserModel } from '@prisma/client'; // Prisma User model
+[7m [0m [91m         ~~~~[0m
+[96msrc/users/dto/update-user-role.dto.ts[0m:[93m2[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+[7m2[0m import { UserRole } from '@prisma/client';
+[7m [0m [91m         ~~~~~~~~[0m
+[96msrc/users/services/users.service.ts[0m:[93m6[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m6[0m import { User, UserRole } from '@prisma/client'; // Added UserRole
+[7m [0m [91m         ~~~~[0m
+[96msrc/users/services/users.service.ts[0m:[93m6[0m:[93m16[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+[7m6[0m import { User, UserRole } from '@prisma/client'; // Added UserRole
+[7m [0m [91m               ~~~~~~~~[0m
+[96msrc/users/services/users.service.ts[0m:[93m184[0m:[93m65[0m - [91merror[0m[90m TS7006: [0mParameter 'prisma' implicitly has an 'any' type.
+
+[7m184[0m       const updatedUser = await this.prisma.$transaction(async (prisma) => {
+[7m   [0m [91m                                                                ~~~~~~[0m
+[96msrc/users/users.module.ts[0m:[93m5[0m:[93m28[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../casl/casl.module' or its corresponding type declarations.
+
+[7m5[0m import { CaslModule } from '../../casl/casl.module'; // Import CaslModule
+[7m [0m [91m                           ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/workflow/purchase-request.machine.ts[0m:[93m3[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+[7m3[0m import { PurchaseRequest, User, PurchaseRequestState } from '@prisma/client'; // PurchaseRequestState do Prisma agora tem CONCLUIDO
+[7m [0m [91m         ~~~~~~~~~~~~~~~[0m
+[96msrc/workflow/purchase-request.machine.ts[0m:[93m3[0m:[93m27[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+[7m3[0m import { PurchaseRequest, User, PurchaseRequestState } from '@prisma/client'; // PurchaseRequestState do Prisma agora tem CONCLUIDO
+[7m [0m [91m                          ~~~~[0m
+[96msrc/workflow/purchase-request.machine.ts[0m:[93m3[0m:[93m33[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+[7m3[0m import { PurchaseRequest, User, PurchaseRequestState } from '@prisma/client'; // PurchaseRequestState do Prisma agora tem CONCLUIDO
+[7m [0m [91m                                ~~~~~~~~~~~~~~~~~~~~[0m
+
+ ELIFECYCLE  Command failed with exit code 1.

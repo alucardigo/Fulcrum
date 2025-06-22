@@ -1,0 +1,4 @@
+
+> shared@0.1.0 build C:\Users\USUARIO\Fulcrum\Fulcrum\packages\shared
+> tsc -p tsconfig.json
+

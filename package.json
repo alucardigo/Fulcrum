@@ -18,9 +18,15 @@
     "clean": "git clean -xdf node_modules dist .next out && find . -name \"node_modules\" -type d -prune -exec rm -rf {} + && find . -name \"dist\" -type d -prune -exec rm -rf {} + && find . -name \".next\" -type d -prune -exec rm -rf {} + && find . -name \"out\" -type d -prune -exec rm -rf {} +"
   },
   "devDependencies": {
-    "turbo": "latest",
+    "eslint": "^8.0.0",
     "prettier": "latest",
-    "eslint": "^8.0.0"
+    "prisma": "^6.10.1",
+    "rimraf": "^6.0.1",
+    "turbo": "latest"
   },
-  "packageManager": "pnpm@8.0.0"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@10.12.1"
 }

@@ -234,5 +234,3 @@ describe('UsersService', () => {
   });
 
 });
-
-[end of apps/api/src/users/services/users.service.spec.ts]

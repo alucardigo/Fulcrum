@@ -1,31 +1,10 @@
 import { UsersService } from '../services/users.service';
+import { UserWithRoles } from '../../casl/casl-ability.factory';
+import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
-    findAll(): Promise<{
-        id: string;
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        isActive: boolean;
-        department: string | null;
-        costCenter: string | null;
-        approvalLimit: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        updatedAt: Date;
-    }[]>;
-    findOne(id: string): Promise<{
-        id: string;
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        isActive: boolean;
-        department: string | null;
-        costCenter: string | null;
-        approvalLimit: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        updatedAt: Date;
-    } | null>;
+    findAll(user: UserWithRoles): Promise<Omit<User, "password">[]>;
+    findOne(id: string, user: UserWithRoles): Promise<Omit<User, "password"> | null>;
+    updateUserRole(userId: string, updateUserRoleDto: UpdateUserRoleDto, user: UserWithRoles): Promise<Omit<User, "password">>;
 }

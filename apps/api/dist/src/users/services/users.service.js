@@ -15,6 +15,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../../prisma.service");
 const bcrypt = require("bcrypt");
+const client_1 = require("@prisma/client");
 let UsersService = UsersService_1 = class UsersService {
     prisma;
     configService;
@@ -22,6 +23,13 @@ let UsersService = UsersService_1 = class UsersService {
     constructor(prisma, configService) {
         this.prisma = prisma;
         this.configService = configService;
+    }
+    excludePassword(user) {
+        const { password, ...result } = user;
+        return result;
+    }
+    excludePasswordFromArray(users) {
+        return users.map(user => this.excludePassword(user));
     }
     async create(createUserDto) {
         const { email, senha, primeiroNome, ultimoNome, cargo } = createUserDto;
@@ -64,11 +72,25 @@ let UsersService = UsersService_1 = class UsersService {
         };
         try {
             const newUser = await this.prisma.user.create({
-                data: userData
+                data: userData,
+                include: { roles: true },
             });
+            if (cargo && Object.values(client_1.UserRole).includes(cargo)) {
+                await this.prisma.userRoleAssignment.create({
+                    data: {
+                        userId: newUser.id,
+                        role: cargo,
+                    },
+                });
+                const userWithRole = await this.prisma.user.findUnique({
+                    where: { id: newUser.id },
+                    include: { roles: true },
+                });
+                this.logger.log(`Usuário criado com sucesso: ${userWithRole.email} (ID: ${userWithRole.id}) com cargo ${cargo}`);
+                return this.excludePassword(userWithRole);
+            }
             this.logger.log(`Usuário criado com sucesso: ${newUser.email} (ID: ${newUser.id})`);
-            const { password, ...result } = newUser;
-            return result;
+            return this.excludePassword(newUser);
         }
         catch (error) {
             this.logger.error(`Falha ao criar usuário ${email}. Erro: ${error.message}`, error.stack);
@@ -85,6 +107,7 @@ let UsersService = UsersService_1 = class UsersService {
         this.logger.debug(`Tentando encontrar usuário por email: ${email}`);
         const user = await this.prisma.user.findUnique({
             where: { email },
+            include: { roles: true },
         });
         if (user) {
             this.logger.debug(`Usuário encontrado: ${user.email}`);
@@ -98,20 +121,74 @@ let UsersService = UsersService_1 = class UsersService {
         this.logger.debug(`Tentando encontrar usuário por ID: ${id}`);
         const user = await this.prisma.user.findUnique({
             where: { id },
+            include: { roles: true },
         });
         if (!user) {
             this.logger.debug(`Nenhum usuário encontrado com o ID: ${id}`);
             return null;
         }
         this.logger.debug(`Usuário encontrado: ${user.email} (ID: ${user.id})`);
-        const { password, ...result } = user;
-        return result;
+        return this.excludePassword(user);
     }
-    findAll() {
-        return this.prisma.user.findMany();
+    async findAll() {
+        this.logger.debug('Buscando todos os usuários');
+        const users = await this.prisma.user.findMany({
+            include: { roles: true },
+        });
+        this.logger.log(`Encontrados ${users.length} usuários.`);
+        return this.excludePasswordFromArray(users);
     }
-    findOne(id) {
-        return this.prisma.user.findUnique({ where: { id } });
+    async findOne(id) {
+        this.logger.debug(`Buscando usuário por ID: ${id}`);
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            include: { roles: true },
+        });
+        if (!user) {
+            this.logger.warn(`Usuário com ID ${id} não encontrado.`);
+            return null;
+        }
+        return this.excludePassword(user);
+    }
+    async updateUserRole(userId, newRole) {
+        this.logger.log(`Tentando atualizar cargo do usuário ${userId} para ${newRole}`);
+        const userExists = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!userExists) {
+            this.logger.warn(`Usuário ${userId} não encontrado para atualização de cargo.`);
+            throw new common_1.NotFoundException(`Usuário com ID ${userId} não encontrado.`);
+        }
+        if (!Object.values(client_1.UserRole).includes(newRole)) {
+            this.logger.error(`Tentativa de atribuir um cargo inválido: ${newRole}`);
+            throw new common_1.ConflictException(`Cargo inválido: ${newRole}`);
+        }
+        try {
+            const updatedUser = await this.prisma.$transaction(async (prisma) => {
+                await prisma.userRoleAssignment.deleteMany({
+                    where: { userId: userId },
+                });
+                this.logger.debug(`Cargos antigos do usuário ${userId} removidos.`);
+                await prisma.userRoleAssignment.create({
+                    data: {
+                        userId: userId,
+                        role: newRole,
+                    },
+                });
+                this.logger.debug(`Novo cargo ${newRole} atribuído ao usuário ${userId}.`);
+                const userWithNewRole = await prisma.user.findUniqueOrThrow({
+                    where: { id: userId },
+                    include: { roles: true },
+                });
+                return userWithNewRole;
+            });
+            this.logger.log(`Cargo do usuário ${userId} atualizado para ${newRole} com sucesso.`);
+            return this.excludePassword(updatedUser);
+        }
+        catch (error) {
+            this.logger.error(`Falha ao atualizar cargo do usuário ${userId} para ${newRole}. Erro: ${error.message}`, error.stack);
+            throw new common_1.InternalServerErrorException('Não foi possível atualizar o cargo do usuário.');
+        }
     }
 };
 exports.UsersService = UsersService;

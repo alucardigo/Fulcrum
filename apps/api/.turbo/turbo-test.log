@@ -1,0 +1,471 @@
+
+> api@0.0.1 test C:\Users\USUARIO\Fulcrum\Fulcrum\apps\api
+> jest --passWithNoTests --detectOpenHandles --config jest.config.js
+
+FAIL src/purchaserequests/services/purchaserequests.service.spec.ts
+  ● Test suite failed to run
+
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m8[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+    [7m8[0m import { PurchaseRequestState, UserRole, PurchaseRequestPriority, PurchaseRequest, User, Item } from '@prisma/client';
+    [7m [0m [91m         ~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m8[0m:[93m32[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+    [7m8[0m import { PurchaseRequestState, UserRole, PurchaseRequestPriority, PurchaseRequest, User, Item } from '@prisma/client';
+    [7m [0m [91m                               ~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m8[0m:[93m42[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestPriority'.
+
+    [7m8[0m import { PurchaseRequestState, UserRole, PurchaseRequestPriority, PurchaseRequest, User, Item } from '@prisma/client';
+    [7m [0m [91m                                         ~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m8[0m:[93m67[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+    [7m8[0m import { PurchaseRequestState, UserRole, PurchaseRequestPriority, PurchaseRequest, User, Item } from '@prisma/client';
+    [7m [0m [91m                                                                  ~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m8[0m:[93m84[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+    [7m8[0m import { PurchaseRequestState, UserRole, PurchaseRequestPriority, PurchaseRequest, User, Item } from '@prisma/client';
+    [7m [0m [91m                                                                                   ~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m8[0m:[93m90[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'Item'.
+
+    [7m8[0m import { PurchaseRequestState, UserRole, PurchaseRequestPriority, PurchaseRequest, User, Item } from '@prisma/client';
+    [7m [0m [91m                                                                                         ~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m10[0m:[93m57[0m - [91merror[0m[90m TS2307: [0mCannot find module '../dto/transition-purchase-request.dto' or its corresponding type declarations.
+
+    [7m10[0m import { TransitionPurchaseRequestDto, EventType } from '../dto/transition-purchase-request.dto';
+    [7m  [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m28[0m:[93m16[0m - [91merror[0m[90m TS2339: [0mProperty 'map' does not exist on type 'UserRole'.
+
+    [7m28[0m   roles: roles.map(role => ({ id: `role-${role}`, userId: id, role, createdAt: new Date(), updatedAt: new Date() })),
+    [7m  [0m [91m               ~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m28[0m:[93m20[0m - [91merror[0m[90m TS7006: [0mParameter 'role' implicitly has an 'any' type.
+
+    [7m28[0m   roles: roles.map(role => ({ id: `role-${role}`, userId: id, role, createdAt: new Date(), updatedAt: new Date() })),
+    [7m  [0m [91m                   ~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m103[0m:[93m57[0m - [91merror[0m[90m TS7006: [0mParameter 'callback' implicitly has an 'any' type.
+
+    [7m103[0m       mockPrisma.$transaction.mockImplementation(async (callback) => {
+    [7m   [0m [91m                                                        ~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m149[0m:[93m25[0m - [91merror[0m[90m TS2554: [0mExpected 2 arguments, but got 1.
+
+    [7m149[0m     const solicitante = mockAppUser('user-solicitante-id',);
+    [7m   [0m [91m                        ~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m16[0m:[93m34[0m
+        [7m16[0m const mockAppUser = (id: string, roles: CaslUserRole): UserWithRoles => ({
+        [7m  [0m [96m                                 ~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'roles' was not provided.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m150[0m:[93m21[0m - [91merror[0m[90m TS2554: [0mExpected 2 arguments, but got 1.
+
+    [7m150[0m     const gerente = mockAppUser('user-gerente-id',);
+    [7m   [0m [91m                    ~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m16[0m:[93m34[0m
+        [7m16[0m const mockAppUser = (id: string, roles: CaslUserRole): UserWithRoles => ({
+        [7m  [0m [96m                                 ~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'roles' was not provided.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m151[0m:[93m21[0m - [91merror[0m[90m TS2554: [0mExpected 2 arguments, but got 1.
+
+    [7m151[0m     const compras = mockAppUser('user-compras-id',);
+    [7m   [0m [91m                    ~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m16[0m:[93m34[0m
+        [7m16[0m const mockAppUser = (id: string, roles: CaslUserRole): UserWithRoles => ({
+        [7m  [0m [96m                                 ~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'roles' was not provided.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m170[0m:[93m57[0m - [91merror[0m[90m TS7006: [0mParameter 'callback' implicitly has an 'any' type.
+
+    [7m170[0m       mockPrisma.$transaction.mockImplementation(async (callback) => {
+    [7m   [0m [91m                                                        ~~~~~~~~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m193[0m:[93m36[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m193[0m       const result = await service.transitionState(requestId, transitionDto, solicitante);
+    [7m   [0m [91m                                   ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m214[0m:[93m36[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m214[0m       const result = await service.transitionState(requestId, transitionDto, gerente);
+    [7m   [0m [91m                                   ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m237[0m:[93m36[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m237[0m       const result = await service.transitionState(requestId, transitionDto, gerente);
+    [7m   [0m [91m                                   ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m265[0m:[93m38[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m265[0m         const result = await service.transitionState(requestId, transitionDto, compras);
+    [7m   [0m [91m                                     ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m283[0m:[93m28[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m283[0m       await expect(service.transitionState(requestId, transitionDto, solicitante))
+    [7m   [0m [91m                           ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m298[0m:[93m30[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m298[0m         await expect(service.transitionState(requestId, transitionDto, solicitante)) // Solicitante tentando aprovar
+    [7m   [0m [91m                             ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m308[0m:[93m28[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsService'. Did you mean 'transition'?
+
+    [7m308[0m       await expect(service.transitionState('non-existent-id', transitionDto, solicitante))
+    [7m   [0m [91m                           ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/services/purchaserequests.service.ts[0m:[93m240[0m:[93m9[0m
+        [7m240[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m64[0m:[93m17[0m - [91merror[0m[90m TS1109: [0mExpression expected.
+
+    [7m64[0m       providers:,
+    [7m  [0m [91m                ~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m82[0m:[93m15[0m - [91merror[0m[90m TS1109: [0mExpression expected.
+
+    [7m82[0m         items:,
+    [7m  [0m [91m              ~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m96[0m:[93m15[0m - [91merror[0m[90m TS1109: [0mExpression expected.
+
+    [7m96[0m         items:,
+    [7m  [0m [91m              ~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m97[0m:[93m19[0m - [91merror[0m[90m TS1109: [0mExpression expected.
+
+    [7m97[0m         histories:,
+    [7m  [0m [91m                  ~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m159[0m:[93m13[0m - [91merror[0m[90m TS1109: [0mExpression expected.
+
+    [7m159[0m       items:,
+    [7m   [0m [91m            ~[0m
+    [96msrc/purchaserequests/services/purchaserequests.service.spec.ts[0m:[93m160[0m:[93m17[0m - [91merror[0m[90m TS1109: [0mExpression expected.
+
+    [7m160[0m       histories:,
+    [7m   [0m [91m                ~[0m
+
+FAIL src/workflow/purchase-request.machine.spec.ts
+  ● Test suite failed to run
+
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m2[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+    [7m2[0m import { PurchaseRequestState, UserRole, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, PurchaseRequestPriority } from '@prisma/client';
+    [7m [0m [91m         ~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m2[0m:[93m32[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+    [7m2[0m import { PurchaseRequestState, UserRole, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, PurchaseRequestPriority } from '@prisma/client';
+    [7m [0m [91m                               ~~~~~~~~[0m
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m2[0m:[93m42[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+    [7m2[0m import { PurchaseRequestState, UserRole, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, PurchaseRequestPriority } from '@prisma/client';
+    [7m [0m [91m                                         ~~~~[0m
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m2[0m:[93m62[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+    [7m2[0m import { PurchaseRequestState, UserRole, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, PurchaseRequestPriority } from '@prisma/client';
+    [7m [0m [91m                                                             ~~~~~~~~~~~~~~~[0m
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m2[0m:[93m104[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestPriority'.
+
+    [7m2[0m import { PurchaseRequestState, UserRole, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, PurchaseRequestPriority } from '@prisma/client';
+    [7m [0m [91m                                                                                                       ~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m88[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m88[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'SUBMIT' });
+    [7m  [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m99[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m99[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'SUBMIT' });
+    [7m  [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m112[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m112[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'APPROVE_PURCHASE' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m129[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m129[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'APPROVE_LEVEL_2' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m146[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m146[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'EXECUTE' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m159[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m159[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'REJECT', reason: 'Test' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m171[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m171[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'REJECT', reason: 'Test' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m190[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m190[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'APPROVE_MANAGEMENT' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+    [96msrc/workflow/purchase-request.machine.spec.ts[0m:[93m201[0m:[93m48[0m - [91merror[0m[90m TS2554: [0mExpected 3 arguments, but got 2.
+
+    [7m201[0m       const nextState = purchaseRequestMachine.transition(currentState, { type: 'APPROVE_MANAGEMENT' });
+    [7m   [0m [91m                                               ~~~~~~~~~~[0m
+
+      [96m../../node_modules/.pnpm/xstate@5.20.0/node_modules/xstate/dist/declarations/src/StateMachine.d.ts[0m:[93m50[0m:[93m131[0m
+        [7m50[0m     transition(snapshot: MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>, event: TEvent, actorScope: ActorScope<typeof snapshot, TEvent, AnyActorSystem, TEmitted>): MachineSnapshot<TContext, TEvent, TChildren, TStateValue, TTag, TOutput, TMeta, TConfig>;
+        [7m  [0m [96m                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+        An argument for 'actorScope' was not provided.
+
+FAIL src/users/services/users.service.spec.ts
+  ● Test suite failed to run
+
+    [96msrc/users/services/users.service.spec.ts[0m:[93m6[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+    [7m6[0m import { UserRole, User } from '@prisma/client'; // Assuming UserRole enum is available
+    [7m [0m [91m         ~~~~~~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m6[0m:[93m20[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'User'.
+
+    [7m6[0m import { UserRole, User } from '@prisma/client'; // Assuming UserRole enum is available
+    [7m [0m [91m                   ~~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m148[0m:[93m32[0m - [91merror[0m[90m TS7006: [0mParameter 'r' implicitly has an 'any' type.
+
+    [7m148[0m       expect(result.roles.some(r => r.role === newRole)).toBe(true);
+    [7m   [0m [91m                               ~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m2[0m - [91merror[0m[90m TS2304: [0mCannot find name 'end'.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m ~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m6[0m - [91merror[0m[90m TS2304: [0mCannot find name 'of'.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m     ~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m9[0m - [91merror[0m[90m TS2304: [0mCannot find name 'apps'.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m        ~~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m14[0m - [91merror[0m[90m TS2304: [0mCannot find name 'api'.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m             ~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m18[0m - [91merror[0m[90m TS2304: [0mCannot find name 'src'.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m                 ~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m22[0m - [91merror[0m[90m TS2552: [0mCannot find name 'users'. Did you mean 'User'?
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m                     ~~~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m28[0m - [91merror[0m[90m TS2304: [0mCannot find name 'services'.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m                           ~~~~~~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m37[0m - [91merror[0m[90m TS2552: [0mCannot find name 'users'. Did you mean 'User'?
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m                                    ~~~~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m6[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m     ~~[0m
+    [96msrc/users/services/users.service.spec.ts[0m:[93m238[0m:[93m9[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+    [7m238[0m [end of apps/api/src/users/services/users.service.spec.ts]
+    [7m   [0m [91m        ~~~~[0m
+
+FAIL src/purchaserequests/controllers/purchaserequests.controller.spec.ts
+  ● Test suite failed to run
+
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m5[0m:[93m32[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../casl/abilities.guard' or its corresponding type declarations.
+
+    [7m5[0m import { AbilitiesGuard } from '../../casl/abilities.guard';
+    [7m [0m [91m                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m9[0m:[93m57[0m - [91merror[0m[90m TS2307: [0mCannot find module '../dto/transition-purchase-request.dto' or its corresponding type declarations.
+
+    [7m9[0m import { TransitionPurchaseRequestDto, EventType } from '../dto/transition-purchase-request.dto';
+    [7m [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m10[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequest'.
+
+    [7m10[0m import { PurchaseRequest, PurchaseRequestState, PurchaseRequestPriority } from '@prisma/client';
+    [7m  [0m [91m         ~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m10[0m:[93m27[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+    [7m10[0m import { PurchaseRequest, PurchaseRequestState, PurchaseRequestPriority } from '@prisma/client';
+    [7m  [0m [91m                          ~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m10[0m:[93m49[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestPriority'.
+
+    [7m10[0m import { PurchaseRequest, PurchaseRequestState, PurchaseRequestPriority } from '@prisma/client';
+    [7m  [0m [91m                                                ~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m110[0m:[93m39[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsController'. Did you mean 'transition'?
+
+    [7m110[0m       const result = await controller.transitionState(requestId, transitionDto, solicitanteUser, mockPurchaseRequest as any); // Pass mock PR as @SubjectParam
+    [7m   [0m [91m                                      ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m132[0m:[93m9[0m
+        [7m132[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m112[0m:[93m22[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'Partial<PurchaseRequestsService>'. Did you mean 'transition'?
+
+    [7m112[0m       expect(service.transitionState).toHaveBeenCalledWith(requestId, transitionDto, solicitanteUser, mockPurchaseRequest);
+    [7m   [0m [91m                     ~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m135[0m:[93m20[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsController'. Did you mean 'transition'?
+
+    [7m135[0m         controller.transitionState(requestId, transitionDto, comprasUser, mockPurchaseRequest as any)
+    [7m   [0m [91m                   ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m132[0m:[93m9[0m
+        [7m132[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m149[0m:[93m22[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'Partial<PurchaseRequestsService>'. Did you mean 'transition'?
+
+    [7m149[0m       expect(service.transitionState).not.toHaveBeenCalled();
+    [7m   [0m [91m                     ~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m165[0m:[93m20[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsController'. Did you mean 'transition'?
+
+    [7m165[0m         controller.transitionState(requestId, transitionDto, solicitanteUser, alreadySubmittedPr as any)
+    [7m   [0m [91m                   ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m132[0m:[93m9[0m
+        [7m132[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m168[0m:[93m22[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'Partial<PurchaseRequestsService>'. Did you mean 'transition'?
+
+    [7m168[0m       expect(service.transitionState).toHaveBeenCalledWith(requestId, transitionDto, solicitanteUser, alreadySubmittedPr);
+    [7m   [0m [91m                     ~~~~~~~~~~~~~~~[0m
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m184[0m:[93m41[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'PurchaseRequestsController'. Did you mean 'transition'?
+
+    [7m184[0m         const result = await controller.transitionState(requestId, approveDto, comprasUser, prPendingCompras as any);
+    [7m   [0m [91m                                        ~~~~~~~~~~~~~~~[0m
+
+      [96msrc/purchaserequests/controllers/purchaserequests.controller.ts[0m:[93m132[0m:[93m9[0m
+        [7m132[0m   async transition(
+        [7m   [0m [96m        ~~~~~~~~~~[0m
+        'transition' is declared here.
+    [96msrc/purchaserequests/controllers/purchaserequests.controller.spec.ts[0m:[93m185[0m:[93m24[0m - [91merror[0m[90m TS2551: [0mProperty 'transitionState' does not exist on type 'Partial<PurchaseRequestsService>'. Did you mean 'transition'?
+
+    [7m185[0m         expect(service.transitionState).toHaveBeenCalledWith(requestId, approveDto, comprasUser, prPendingCompras);
+    [7m   [0m [91m                       ~~~~~~~~~~~~~~~[0m
+
+FAIL src/casl/casl-ability.factory.spec.ts
+  ● Test suite failed to run
+
+    [96msrc/casl/casl-ability.factory.spec.ts[0m:[93m3[0m:[93m10[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'UserRole'.
+
+    [7m3[0m import { UserRole, PurchaseRequestState } from '@prisma/client';
+    [7m [0m [91m         ~~~~~~~~[0m
+    [96msrc/casl/casl-ability.factory.spec.ts[0m:[93m3[0m:[93m20[0m - [91merror[0m[90m TS2305: [0mModule '"@prisma/client"' has no exported member 'PurchaseRequestState'.
+
+    [7m3[0m import { UserRole, PurchaseRequestState } from '@prisma/client';
+    [7m [0m [91m                   ~~~~~~~~~~~~~~~~~~~~[0m
+
+FAIL src/users/controllers/users.controller.spec.ts
+  ● Test suite failed to run
+
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m5[0m:[93m32[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../casl/abilities.guard' or its corresponding type declarations.
+
+    [7m5[0m import { AbilitiesGuard } from '../../casl/abilities.guard';
+    [7m [0m [91m                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m2[0m - [91merror[0m[90m TS2304: [0mCannot find name 'end'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m ~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m6[0m - [91merror[0m[90m TS2304: [0mCannot find name 'of'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m     ~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m9[0m - [91merror[0m[90m TS2304: [0mCannot find name 'apps'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m        ~~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m14[0m - [91merror[0m[90m TS2304: [0mCannot find name 'api'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m             ~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m18[0m - [91merror[0m[90m TS2304: [0mCannot find name 'src'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m                 ~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m22[0m - [91merror[0m[90m TS2304: [0mCannot find name 'users'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m                     ~~~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m28[0m - [91merror[0m[90m TS2304: [0mCannot find name 'controllers'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m                           ~~~~~~~~~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m40[0m - [91merror[0m[90m TS2304: [0mCannot find name 'users'.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m                                       ~~~~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m6[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m     ~~[0m
+    [96msrc/users/controllers/users.controller.spec.ts[0m:[93m188[0m:[93m9[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+    [7m188[0m [end of apps/api/src/users/controllers/users.controller.spec.ts]
+    [7m   [0m [91m        ~~~~[0m
+
+PASS src/app.controller.spec.ts
+
+Test Suites: 6 failed, 1 passed, 7 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        17.132 s
+Ran all test suites.
+ ELIFECYCLE  Test failed. See above for more details.

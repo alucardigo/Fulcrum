@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
+import styles from './page.module.css';
 import { useAuthStore, UserRole } from '../../../stores/authStore'; // Adjusted path
 import { apiClient } from '../../../lib/api/apiClient'; // Adjusted path
 import { useRouter } from 'next/navigation';
@@ -110,7 +111,7 @@ const AdminUsersPage = () => {
       {users.length === 0 ? (
         <p>Nenhum usuário encontrado.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        <table className="admin-users-table">
           <thead style={{ backgroundColor: '#f0f0f0' }}>
             <tr>
               <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Nome</th>

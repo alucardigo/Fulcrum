@@ -34,7 +34,7 @@ describe('PurchaseRequestsController', () => {
   let caslAbilityFactory: CaslAbilityFactory;
 
   const mockPurchaseRequestsService = {
-    transitionState: jest.fn(),
+    transition: jest.fn(),
     // Add other methods like findOne, create, etc., if testing those controller endpoints
   };
 
@@ -48,6 +48,8 @@ describe('PurchaseRequestsController', () => {
       ],
     })
     .overrideGuard(JwtAuthGuard) // Mock JWT guard to always allow, focus on AbilitiesGuard
+    .useValue({ canActivate: () => true })
+    .overrideGuard(AbilitiesGuard) // Mock AbilitiesGuard to simplify test logic
     .useValue({ canActivate: () => true })
     .compile();
 
@@ -94,7 +96,7 @@ describe('PurchaseRequestsController', () => {
       const solicitanteUser = mockReqUser('solicitante-user-id', 'solicitante@example.com', [UserRole.SOLICITANTE]);
       const updatedPr = { ...mockPurchaseRequest, status: PurchaseRequestState.PENDENTE_COMPRAS };
 
-      mockPurchaseRequestsService.transitionState.mockResolvedValue(updatedPr as any);
+      mockPurchaseRequestsService.transition.mockResolvedValue(updatedPr as any);
 
       // Simulate AbilitiesGuard check:
       // The guard would need the PR object to check ownership or specific conditions.
@@ -107,9 +109,9 @@ describe('PurchaseRequestsController', () => {
       expect(ability.can(Action.Submit, 'PurchaseRequest')).toBe(true);
       // Note: The actual CASL rule might be more specific, e.g., can(Action.Submit, 'PurchaseRequest', { requesterId: user.id })
 
-      const result = await controller.transitionState(requestId, transitionDto, solicitanteUser, mockPurchaseRequest as any); // Pass mock PR as @SubjectParam
+      const result = await controller.transition(requestId, transitionDto, solicitanteUser, mockPurchaseRequest as any); // Pass mock PR as @SubjectParam
 
-      expect(service.transitionState).toHaveBeenCalledWith(requestId, transitionDto, solicitanteUser, mockPurchaseRequest);
+      expect(service.transition).toHaveBeenCalledWith(requestId, transitionDto, solicitanteUser, mockPurchaseRequest);
       expect(result).toEqual(updatedPr);
     });
 
@@ -132,7 +134,7 @@ describe('PurchaseRequestsController', () => {
       // For now, we assert the ability and that the service is NOT called if ability is false.
 
       await expect(
-        controller.transitionState(requestId, transitionDto, comprasUser, mockPurchaseRequest as any)
+        controller.transition(requestId, transitionDto, comprasUser, mockPurchaseRequest as any)
       ).rejects.toThrow(ForbiddenException); // This assumes the guard is correctly implemented and throws.
                                            // Or, if testing without the guard fully active, check that service isn't called.
                                            // For this test, let's assume the guard is active and throws based on the decorator.
@@ -146,7 +148,7 @@ describe('PurchaseRequestsController', () => {
       // So, the `await expect(...).rejects.toThrow(ForbiddenException)` is a valid way if the guard is active.
       // Let's refine the guard mocking strategy if this doesn't behave as expected.
       // For now, this assertion stands.
-      expect(service.transitionState).not.toHaveBeenCalled();
+      expect(service.transition).not.toHaveBeenCalled();
     });
 
     it('should return 403 if service throws ForbiddenException for invalid transition (Logic Failure)', async () => {
@@ -154,7 +156,7 @@ describe('PurchaseRequestsController', () => {
       // Simulate a PR that's already PENDENTE_COMPRAS, and SOLICITANTE tries to SUBMIT again (invalid logic)
       const alreadySubmittedPr = { ...mockPurchaseRequest, status: PurchaseRequestState.PENDENTE_COMPRAS };
 
-      mockPurchaseRequestsService.transitionState.mockRejectedValue(new ForbiddenException('Invalid transition'));
+      mockPurchaseRequestsService.transition.mockRejectedValue(new ForbiddenException('Invalid transition'));
 
       const ability = caslAbilityFactory.createForUser(solicitanteUser);
       // User might have general submit permission, but the state machine in service prevents this specific transition
@@ -162,10 +164,10 @@ describe('PurchaseRequestsController', () => {
 
 
       await expect(
-        controller.transitionState(requestId, transitionDto, solicitanteUser, alreadySubmittedPr as any)
+        controller.transition(requestId, transitionDto, solicitanteUser, alreadySubmittedPr as any)
       ).rejects.toThrow(ForbiddenException);
 
-      expect(service.transitionState).toHaveBeenCalledWith(requestId, transitionDto, solicitanteUser, alreadySubmittedPr);
+      expect(service.transition).toHaveBeenCalledWith(requestId, transitionDto, solicitanteUser, alreadySubmittedPr);
     });
 
     // Test for a different event type, e.g., APPROVE_LVL1 by COMPRAS user
@@ -175,15 +177,32 @@ describe('PurchaseRequestsController', () => {
         const prPendingCompras = { ...mockPurchaseRequest, status: PurchaseRequestState.PENDENTE_COMPRAS };
         const prUpdatedToPendingGerencia = { ...prPendingCompras, status: PurchaseRequestState.PENDENTE_GERENCIA };
 
-        mockPurchaseRequestsService.transitionState.mockResolvedValue(prUpdatedToPendingGerencia as any);
+        mockPurchaseRequestsService.transition.mockResolvedValue(prUpdatedToPendingGerencia as any);
 
         const ability = caslAbilityFactory.createForUser(comprasUser);
         // Assuming COMPRAS can 'approve_purchase' (which might map to APPROVE_LVL1 event)
         expect(ability.can(Action.ApprovePurchase, 'PurchaseRequest')).toBe(true);
 
-        const result = await controller.transitionState(requestId, approveDto, comprasUser, prPendingCompras as any);
-        expect(service.transitionState).toHaveBeenCalledWith(requestId, approveDto, comprasUser, prPendingCompras);
+        const result = await controller.transition(requestId, approveDto, comprasUser, prPendingCompras as any);
+        expect(service.transition).toHaveBeenCalledWith(requestId, approveDto, comprasUser, prPendingCompras);
         expect(result.status).toBe(PurchaseRequestState.PENDENTE_GERENCIA);
+    });
+
+    it('should correctly transition from PENDENTE_COMPRAS to PENDENTE_GERENCIA if amount is over limit', async () => {
+      const comprasUser = mockReqUser('compras-user-id', 'compras@example.com', [UserRole.COMPRAS]);
+      const approveDto: TransitionPurchaseRequestDto = { eventType: EventType.APPROVE_LVL1 };
+      const prPendingCompras = { ...mockPurchaseRequest, status: PurchaseRequestState.PENDENTE_COMPRAS };
+      const prUpdatedToPendingGerencia = { ...prPendingCompras, status: PurchaseRequestState.PENDENTE_GERENCIA };
+
+      mockPurchaseRequestsService.transition.mockResolvedValue(prUpdatedToPendingGerencia as any);
+
+      const ability = caslAbilityFactory.createForUser(comprasUser);
+      // Assuming COMPRAS can 'approve_purchase' (which might map to APPROVE_LVL1 event)
+      expect(ability.can(Action.ApprovePurchase, 'PurchaseRequest')).toBe(true);
+
+      const result = await controller.transition(requestId, approveDto, comprasUser);
+      expect(service.transition).toHaveBeenCalledWith(requestId, approveDto, comprasUser);
+      expect(result.status).toEqual(PurchaseRequestState.PENDENTE_GERENCIA);
     });
   });
 });
