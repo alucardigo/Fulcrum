@@ -12,6 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var PurchaseRequestsController_1;
+var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PurchaseRequestsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -89,7 +90,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_purchase_request_dto_1.CreatePurchaseRequestDto, Object]),
+    __metadata("design:paramtypes", [create_purchase_request_dto_1.CreatePurchaseRequestDto, typeof (_a = typeof casl_ability_factory_1.UserWithRoles !== "undefined" && casl_ability_factory_1.UserWithRoles) === "function" ? _a : Object]),
     __metadata("design:returntype", Promise)
 ], PurchaseRequestsController.prototype, "create", null);
 __decorate([
@@ -105,7 +106,7 @@ __decorate([
     }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [typeof (_b = typeof casl_ability_factory_1.UserWithRoles !== "undefined" && casl_ability_factory_1.UserWithRoles) === "function" ? _b : Object]),
     __metadata("design:returntype", Promise)
 ], PurchaseRequestsController.prototype, "findAll", null);
 __decorate([
@@ -127,7 +128,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, typeof (_c = typeof casl_ability_factory_1.UserWithRoles !== "undefined" && casl_ability_factory_1.UserWithRoles) === "function" ? _c : Object]),
     __metadata("design:returntype", Promise)
 ], PurchaseRequestsController.prototype, "findOne", null);
 __decorate([
@@ -155,7 +156,7 @@ __decorate([
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, TransitionEventDto]),
+    __metadata("design:paramtypes", [String, typeof (_d = typeof casl_ability_factory_1.UserWithRoles !== "undefined" && casl_ability_factory_1.UserWithRoles) === "function" ? _d : Object, TransitionEventDto]),
     __metadata("design:returntype", Promise)
 ], PurchaseRequestsController.prototype, "transition", null);
 exports.PurchaseRequestsController = PurchaseRequestsController = PurchaseRequestsController_1 = __decorate([

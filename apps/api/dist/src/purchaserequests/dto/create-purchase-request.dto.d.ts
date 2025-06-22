@@ -1,30 +1,19 @@
 import { z } from 'zod';
 import { PurchaseRequestPriority } from '@prisma/client';
 declare const CreatePurchaseRequestDto_base: import("nestjs-zod").ZodDto<{
-    title: string;
-    priority: "BAIXA" | "NORMAL" | "ALTA" | "URGENTE";
-    justification: string;
-    items: {
-        name: string;
-        quantity: number;
-        unitPrice: number;
-        description?: string | undefined;
-        supplier?: string | undefined;
-        supplierCNPJ?: string | undefined;
-    }[];
-    costCenter?: string | undefined;
-    description?: string | undefined;
-    projectId?: string | undefined;
-    expectedDeliveryDate?: Date | undefined;
+    [x: string]: any;
+    title?: unknown;
+    description?: unknown;
+    priority?: unknown;
+    projectId?: unknown;
+    costCenter?: unknown;
+    justification?: unknown;
+    expectedDeliveryDate?: unknown;
+    items?: unknown;
 }, z.ZodObjectDef<{
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
-    priority: z.ZodNativeEnum<{
-        BAIXA: "BAIXA";
-        NORMAL: "NORMAL";
-        ALTA: "ALTA";
-        URGENTE: "URGENTE";
-    }>;
+    priority: z.ZodNativeEnum<any>;
     projectId: z.ZodOptional<z.ZodString>;
     costCenter: z.ZodOptional<z.ZodString>;
     justification: z.ZodString;
@@ -37,36 +26,30 @@ declare const CreatePurchaseRequestDto_base: import("nestjs-zod").ZodDto<{
         supplier: z.ZodOptional<z.ZodString>;
         supplierCNPJ: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        name: string;
         quantity: number;
+        name: string;
         unitPrice: number;
         description?: string | undefined;
         supplier?: string | undefined;
         supplierCNPJ?: string | undefined;
     }, {
-        name: string;
         quantity: number;
+        name: string;
         unitPrice: number;
         description?: string | undefined;
         supplier?: string | undefined;
         supplierCNPJ?: string | undefined;
     }>, "many">;
 }, "strip", z.ZodTypeAny>, {
-    title: string;
-    priority: "BAIXA" | "NORMAL" | "ALTA" | "URGENTE";
-    justification: string;
-    items: {
-        name: string;
-        quantity: number;
-        unitPrice: number;
-        description?: string | undefined;
-        supplier?: string | undefined;
-        supplierCNPJ?: string | undefined;
-    }[];
-    costCenter?: string | undefined;
-    description?: string | undefined;
-    projectId?: string | undefined;
-    expectedDeliveryDate?: Date | undefined;
+    [x: string]: any;
+    title?: unknown;
+    description?: unknown;
+    priority?: unknown;
+    projectId?: unknown;
+    costCenter?: unknown;
+    justification?: unknown;
+    expectedDeliveryDate?: unknown;
+    items?: unknown;
 }>;
 export declare class CreatePurchaseRequestDto extends CreatePurchaseRequestDto_base {
     title: string;

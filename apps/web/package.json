@@ -10,6 +10,7 @@
     "test": "echo \"Tests for web package not yet implemented\""
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
     "axios": "^1.10.0",
     "lucide-react": "^0.522.0",
     "next": "15.3.4",
@@ -27,7 +28,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.3.3",
+    "eslint-config-next": "15.3.4",
     "tailwindcss": "^4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"

@@ -7,9 +7,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var CaslAbilityFactory_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CaslAbilityFactory = exports.Action = exports.PurchaseRequestState = exports.UserRole = void 0;
+exports.CaslAbilityFactory = exports.Action = exports.UserRole = exports.PurchaseRequestState = void 0;
 const common_1 = require("@nestjs/common");
 const ability_1 = require("@casl/ability");
+const client_1 = require("@prisma/client");
+Object.defineProperty(exports, "PurchaseRequestState", { enumerable: true, get: function () { return client_1.PurchaseRequestState; } });
 var UserRole;
 (function (UserRole) {
     UserRole["SOLICITANTE"] = "SOLICITANTE";
@@ -17,17 +19,6 @@ var UserRole;
     UserRole["GERENCIA"] = "GERENCIA";
     UserRole["ADMINISTRADOR"] = "ADMINISTRADOR";
 })(UserRole || (exports.UserRole = UserRole = {}));
-var PurchaseRequestState;
-(function (PurchaseRequestState) {
-    PurchaseRequestState["RASCUNHO"] = "RASCUNHO";
-    PurchaseRequestState["PENDENTE_COMPRAS"] = "PENDENTE_COMPRAS";
-    PurchaseRequestState["PENDENTE_GERENCIA"] = "PENDENTE_GERENCIA";
-    PurchaseRequestState["APROVADO"] = "APROVADO";
-    PurchaseRequestState["REJEITADO"] = "REJEITADO";
-    PurchaseRequestState["COMPRADO"] = "COMPRADO";
-    PurchaseRequestState["ENTREGUE"] = "ENTREGUE";
-    PurchaseRequestState["CANCELADO"] = "CANCELADO";
-})(PurchaseRequestState || (exports.PurchaseRequestState = PurchaseRequestState = {}));
 var Action;
 (function (Action) {
     Action["Manage"] = "manage";
@@ -38,7 +29,9 @@ var Action;
     Action["Submit"] = "submit";
     Action["ApprovePurchase"] = "approve_purchase";
     Action["ApproveManagement"] = "approve_management";
+    Action["ApproveLevel2"] = "approve_level_2";
     Action["Reject"] = "reject";
+    Action["Execute"] = "execute";
     Action["PlaceOrder"] = "place_order";
     Action["ReceiveItems"] = "receive_items";
     Action["Cancel"] = "cancel";
@@ -64,15 +57,16 @@ let CaslAbilityFactory = CaslAbilityFactory_1 = class CaslAbilityFactory {
         }
         if (user.roles.some(r => r.role === UserRole.COMPRAS)) {
             can(Action.Read, 'PurchaseRequest');
-            can(Action.ApprovePurchase, 'PurchaseRequest');
-            can(Action.Reject, 'PurchaseRequest');
+            can(Action.ApprovePurchase, 'PurchaseRequest', undefined, { status: { $eq: client_1.PurchaseRequestState.PENDENTE_COMPRAS } });
+            can(Action.Reject, 'PurchaseRequest', undefined, { status: { $eq: client_1.PurchaseRequestState.PENDENTE_COMPRAS } });
+            can(Action.Execute, 'PurchaseRequest', undefined, { status: { $eq: client_1.PurchaseRequestState.APROVADO } });
             can(Action.PlaceOrder, 'PurchaseRequest');
             can(Action.ReceiveItems, 'PurchaseRequest');
         }
         if (user.roles.some(r => r.role === UserRole.GERENCIA)) {
             can(Action.Read, 'PurchaseRequest');
-            can(Action.ApproveManagement, 'PurchaseRequest');
-            can(Action.Reject, 'PurchaseRequest');
+            can(Action.ApproveLevel2, 'PurchaseRequest', undefined, { status: { $eq: client_1.PurchaseRequestState.PENDENTE_GERENCIA } });
+            can(Action.Reject, 'PurchaseRequest', undefined, { status: { $eq: client_1.PurchaseRequestState.PENDENTE_GERENCIA } });
         }
         return build({
             detectSubjectType: (item) => {

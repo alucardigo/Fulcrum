@@ -31,7 +31,7 @@ declare const envSchema: z.ZodObject<{
     JWT_REFRESH_EXPIRES_IN: string;
     RATE_LIMIT_WINDOW: number;
     RATE_LIMIT_MAX: number;
-    LOG_LEVEL: "info" | "warn" | "error" | "debug";
+    LOG_LEVEL: "error" | "debug" | "warn" | "info";
     LOG_FILE_MAX_SIZE: number;
     LOG_MAX_FILES: number;
     SMTP_HOST?: string | undefined;
@@ -51,7 +51,7 @@ declare const envSchema: z.ZodObject<{
     JWT_REFRESH_EXPIRES_IN?: string | undefined;
     RATE_LIMIT_WINDOW?: string | undefined;
     RATE_LIMIT_MAX?: string | undefined;
-    LOG_LEVEL?: "info" | "warn" | "error" | "debug" | undefined;
+    LOG_LEVEL?: "error" | "debug" | "warn" | "info" | undefined;
     LOG_FILE_MAX_SIZE?: string | undefined;
     LOG_MAX_FILES?: string | undefined;
     SMTP_HOST?: string | undefined;
@@ -72,7 +72,7 @@ export declare const config: {
     JWT_REFRESH_EXPIRES_IN: string;
     RATE_LIMIT_WINDOW: number;
     RATE_LIMIT_MAX: number;
-    LOG_LEVEL: "info" | "warn" | "error" | "debug";
+    LOG_LEVEL: "error" | "debug" | "warn" | "info";
     LOG_FILE_MAX_SIZE: number;
     LOG_MAX_FILES: number;
     SMTP_HOST?: string | undefined;

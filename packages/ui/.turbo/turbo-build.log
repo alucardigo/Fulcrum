@@ -1,0 +1,6 @@
+
+> ui@0.0.0 build C:\Users\USUARIO\Fulcrum\Fulcrum\packages\ui
+> npx tsup src/index.tsx --format esm,cjs --dts --external react
+
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.

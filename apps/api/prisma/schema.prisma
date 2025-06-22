@@ -26,6 +26,7 @@ enum PurchaseRequestState {
   COMPRADO
   ENTREGUE
   CANCELADO
+  CONCLUIDO
 }
 
 enum PurchaseRequestPriority {
@@ -83,6 +84,7 @@ model PurchaseRequest {
   rejectedAt         DateTime?
   orderedAt          DateTime?
   deliveredAt        DateTime?
+  notes              String?              @db.Text // Campo de notas gerais da requisição
   histories          RequestHistory[]     @relation("PurchaseRequestHistory")
 
   @@index([requesterId])
@@ -151,6 +153,7 @@ model RequestHistory {
   actionDescription String          @db.Text
   previousState     String?         @db.Text
   newState          String          @db.Text
+  notes             String?         @db.Text // Notas específicas desta transição/histórico
   metadata          Json?
   userId            String
   user              User            @relation("UserHistory", fields: [userId], references: [id])

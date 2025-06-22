@@ -17,34 +17,10 @@ export declare class AuthController {
     login(req: AuthenticatedRequest, loginDto: LoginDto): Promise<{
         access_token: string;
     }>;
-    getProfile(req: AuthenticatedRequest): Omit<{
-        id: string;
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        isActive: boolean;
-        department: string | null;
-        costCenter: string | null;
-        approvalLimit: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        updatedAt: Date;
-    }, "password"> | {
+    getProfile(req: AuthenticatedRequest): Omit<UserModel, "password"> | {
         userId: string;
         email: string;
     };
-    register(createUserDto: CreateUserDto): Promise<Omit<{
-        id: string;
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        isActive: boolean;
-        department: string | null;
-        costCenter: string | null;
-        approvalLimit: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        updatedAt: Date;
-    }, "password">>;
+    register(createUserDto: CreateUserDto): Promise<Omit<User, "password">>;
 }
 export {};

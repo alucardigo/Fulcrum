@@ -30,6 +30,8 @@ const guardDefinitions = [
     },
     { key: 'canReject', action: casl_ability_factory_1.Action.Reject },
     { key: 'canPlaceOrder', action: casl_ability_factory_1.Action.PlaceOrder },
+    { key: 'canApproveLevel2', action: casl_ability_factory_1.Action.ApproveLevel2 },
+    { key: 'canExecute', action: casl_ability_factory_1.Action.Execute },
 ];
 const guards = Object.fromEntries(guardDefinitions.map(({ key, action, extraCheck }) => [key, makeAbilityGuard(action, extraCheck)]));
 const machine = (0, xstate_1.setup)({
@@ -51,16 +53,64 @@ const machine = (0, xstate_1.setup)({
         assignApproved: (0, xstate_1.assign)(({ context }) => ({
             requestData: context.requestData ? { ...context.requestData, status: client_1.PurchaseRequestState.APROVADO } : null,
         })),
-        assignRejected: (0, xstate_1.assign)(({ context, event }) => ({
-            requestData: context.requestData ? { ...context.requestData, status: client_1.PurchaseRequestState.REJEITADO, ...(event && 'notes' in event ? { notes: event.notes } : {}) } : null,
-        })),
+        assignRejected: (0, xstate_1.assign)(({ context, event }) => {
+            const typedEvent = event;
+            return {
+                requestData: context.requestData ? {
+                    ...context.requestData,
+                    status: client_1.PurchaseRequestState.REJEITADO,
+                    notes: typedEvent.notes || context.requestData.notes,
+                    rejectionReason: typedEvent.payload?.reason || typedEvent.reason || null
+                } : null,
+            };
+        }),
         assignOrdered: (0, xstate_1.assign)(({ context }) => ({
             requestData: context.requestData ? { ...context.requestData, status: client_1.PurchaseRequestState.COMPRADO } : null,
         })),
+        assignConcluido: (0, xstate_1.assign)(({ context }) => ({
+            requestData: context.requestData ? { ...context.requestData, status: client_1.PurchaseRequestState.CONCLUIDO } : null,
+        })),
     },
 }).createMachine({
-    context: {},
-    states: {},
+    id: 'purchaseRequestWorkflow',
+    initial: client_1.PurchaseRequestState.RASCUNHO,
+    context: {
+        currentUser: null,
+        requestData: null,
+        ability: null,
+        errorMessage: undefined,
+        notes: undefined,
+    },
+    states: {
+        [client_1.PurchaseRequestState.RASCUNHO]: {
+            on: {
+                SUBMIT: { target: client_1.PurchaseRequestState.PENDENTE_COMPRAS, cond: 'canSubmit', actions: 'assignPendingPurchase' },
+            },
+        },
+        [client_1.PurchaseRequestState.PENDENTE_COMPRAS]: {
+            on: {
+                APPROVE_PURCHASE: { target: client_1.PurchaseRequestState.PENDENTE_GERENCIA, cond: 'canApprovePurchase', actions: 'assignPendingManagement' },
+                REJECT: { target: client_1.PurchaseRequestState.REJEITADO, cond: 'canReject', actions: 'assignRejected' },
+            },
+        },
+        [client_1.PurchaseRequestState.PENDENTE_GERENCIA]: {
+            on: {
+                APPROVE_LEVEL_2: { target: client_1.PurchaseRequestState.APROVADO, cond: 'canApproveLevel2', actions: 'assignApproved' },
+                REJECT: { target: client_1.PurchaseRequestState.REJEITADO, cond: 'canReject', actions: 'assignRejected' },
+            },
+        },
+        [client_1.PurchaseRequestState.APROVADO]: {
+            on: {
+                EXECUTE: { target: client_1.PurchaseRequestState.CONCLUIDO, cond: 'canExecute', actions: 'assignConcluido' },
+            },
+        },
+        [client_1.PurchaseRequestState.REJEITADO]: {
+            type: 'final',
+        },
+        [client_1.PurchaseRequestState.CONCLUIDO]: {
+            type: 'final',
+        },
+    },
 });
 exports.purchaseRequestMachine = machine;
 //# sourceMappingURL=purchase-request.machine.js.map

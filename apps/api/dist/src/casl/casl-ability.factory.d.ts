@@ -1,26 +1,18 @@
 import { Ability, InferSubjects } from '@casl/ability';
-import { Prisma } from '@prisma/client';
+import { Prisma, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
 type Models = {
-    User: any;
-    PurchaseRequest: any;
-    Project: any;
-    Item: any;
+    User: PrismaUser;
+    PurchaseRequest: PrismaPurchaseRequest;
+    Project: PrismaProject;
+    Item: PrismaItem;
 };
+import { PurchaseRequestState } from '@prisma/client';
+export { PurchaseRequestState };
 export declare enum UserRole {
     SOLICITANTE = "SOLICITANTE",
     COMPRAS = "COMPRAS",
     GERENCIA = "GERENCIA",
     ADMINISTRADOR = "ADMINISTRADOR"
-}
-export declare enum PurchaseRequestState {
-    RASCUNHO = "RASCUNHO",
-    PENDENTE_COMPRAS = "PENDENTE_COMPRAS",
-    PENDENTE_GERENCIA = "PENDENTE_GERENCIA",
-    APROVADO = "APROVADO",
-    REJEITADO = "REJEITADO",
-    COMPRADO = "COMPRADO",
-    ENTREGUE = "ENTREGUE",
-    CANCELADO = "CANCELADO"
 }
 export declare enum Action {
     Manage = "manage",
@@ -31,7 +23,9 @@ export declare enum Action {
     Submit = "submit",
     ApprovePurchase = "approve_purchase",
     ApproveManagement = "approve_management",
+    ApproveLevel2 = "approve_level_2",
     Reject = "reject",
+    Execute = "execute",
     PlaceOrder = "place_order",
     ReceiveItems = "receive_items",
     Cancel = "cancel"
@@ -47,4 +41,3 @@ export declare class CaslAbilityFactory {
     private readonly logger;
     createForUser(user: UserWithRoles | null): AppAbility;
 }
-export {};

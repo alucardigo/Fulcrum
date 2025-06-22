@@ -1,7 +1,7 @@
 # Dockerfile para a API NestJS (apps/api)
 
 # ---- Estágio Builder ----
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Definir diretório de trabalho
 WORKDIR /usr/src/app
@@ -27,7 +27,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # ---- Estágio Production ----
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=\${NODE_ENV}

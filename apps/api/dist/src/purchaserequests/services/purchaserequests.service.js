@@ -255,10 +255,31 @@ let PurchaseRequestsService = PurchaseRequestsService_1 = class PurchaseRequests
         }
         this.logger.log(`Transição bem-sucedida para Req ID: ${requestId}. De '${currentRequestState.status}' para '${newState}'.`);
         try {
-            const [updatedRequest, _historyLog] = await this.prisma.$transaction([
-                this.prisma.purchaseRequest.update({
+            const updateData = {
+                status: newState,
+                ...(eventDto.notes && stateChanged && { notes: eventDto.notes }),
+            };
+            let actionDescriptionDetails = '';
+            if (eventDto.type === 'REJECT' && eventDto.payload?.rejectionReason) {
+                updateData.rejectionReason = eventDto.payload.rejectionReason;
+                actionDescriptionDetails = ` - Motivo da Rejeição: ${eventDto.payload.rejectionReason}`;
+            }
+            else if (eventDto.payload?.reason) {
+                actionDescriptionDetails = ` - Motivo: ${eventDto.payload.reason}`;
+            }
+            if (newState === client_1.PurchaseRequestState.APROVADO && currentRequestState.status !== client_1.PurchaseRequestState.APROVADO) {
+                updateData.approvedAt = new Date();
+            }
+            if (newState === client_1.PurchaseRequestState.REJEITADO && currentRequestState.status !== client_1.PurchaseRequestState.REJEITADO) {
+                updateData.rejectedAt = new Date();
+            }
+            if (newState === client_1.PurchaseRequestState.CONCLUIDO && currentRequestState.status !== client_1.PurchaseRequestState.CONCLUIDO) {
+                updateData.orderedAt = new Date();
+            }
+            const [updatedRequest, _historyLog] = await this.prisma.$transaction(async (tx) => {
+                const localUpdatedRequest = await tx.purchaseRequest.update({
                     where: { id: requestId },
-                    data: { status: newState },
+                    data: updateData,
                     include: {
                         items: true,
                         requester: {
@@ -282,19 +303,21 @@ let PurchaseRequestsService = PurchaseRequestsService_1 = class PurchaseRequests
                             }
                         }
                     }
-                }),
-                this.prisma.requestHistory.create({
+                });
+                const localHistoryLog = await tx.requestHistory.create({
                     data: {
                         purchaseRequestId: requestId,
                         userId: performingUser.id,
                         previousState: currentRequestState.status,
                         newState: newState,
                         actionType: eventDto.type,
-                        actionDescription: `Evento: ${eventDto.type}${eventDto.payload?.reason ? ` - Motivo: ${eventDto.payload.reason}` : ''}`,
+                        actionDescription: `Evento: ${eventDto.type}${actionDescriptionDetails}`,
+                        notes: eventDto.notes,
                         metadata: eventDto.payload ? JSON.stringify(eventDto.payload) : undefined,
                     },
-                }),
-            ]);
+                });
+                return [localUpdatedRequest, localHistoryLog];
+            });
             this.logger.log(`Requisição ID: ${requestId} atualizada para estado: ${newState} e histórico registrado.`);
             service.stop();
             return updatedRequest;
