@@ -18,7 +18,7 @@ jobs:
           node-version: '18'
           
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           
@@ -56,7 +56,7 @@ jobs:
           head: HEAD
           
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
@@ -66,7 +66,7 @@ jobs:
             
       - name: Notify on High Severity Findings
         if: failure()
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@v2.1.0
         with:
           payload: |
             {
