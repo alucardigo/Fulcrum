@@ -1,33 +1,34 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Ability, AbilityBuilder, AbilityClass, ExtractSubjectType, InferSubjects } from '@casl/ability';
-import { Prisma } from '@prisma/client';
+import { Prisma, User as PrismaUser, PurchaseRequest as PrismaPurchaseRequest, Project as PrismaProject, Item as PrismaItem } from '@prisma/client';
 
 // Define os modelos base para o CASL
 type Models = {
-  User: any;
-  PurchaseRequest: any;
-  Project: any;
-  Item: any;
+  User: PrismaUser;
+  PurchaseRequest: PrismaPurchaseRequest;
+  Project: PrismaProject;
+  Item: PrismaItem;
 };
 
 // Enums necessários
-export enum UserRole {
+// Importar PurchaseRequestState do Prisma Client, pois ele agora contém CONCLUIDO
+// e é o tipo usado no modelo PrismaPurchaseRequest.
+import { PurchaseRequestState, UserRole as PrismaUserRole } from '@prisma/client';
+// Mantemos UserRole local se ele tiver valores diferentes ou for usado apenas internamente pela factory,
+// ou podemos mapear/usar PrismaUserRole se forem idênticos. Por ora, UserRole local.
+// Se UserRole local for idêntico ao do Prisma, poderíamos usar PrismaUserRole também.
+// No entanto, o erro não está em UserRole, então vamos focar em PurchaseRequestState.
+
+export { PurchaseRequestState }; // Re-exportar para que outros módulos que usavam o local continuem funcionando, ou ajustar as importações nesses módulos.
+
+export enum UserRole { // Mantendo este local por enquanto, pode ser alinhado com PrismaUserRole se necessário.
   SOLICITANTE = 'SOLICITANTE',
   COMPRAS = 'COMPRAS',
   GERENCIA = 'GERENCIA',
   ADMINISTRADOR = 'ADMINISTRADOR'
 }
 
-export enum PurchaseRequestState {
-  RASCUNHO = 'RASCUNHO',
-  PENDENTE_COMPRAS = 'PENDENTE_COMPRAS',
-  PENDENTE_GERENCIA = 'PENDENTE_GERENCIA',
-  APROVADO = 'APROVADO',
-  REJEITADO = 'REJEITADO',
-  COMPRADO = 'COMPRADO',
-  ENTREGUE = 'ENTREGUE',
-  CANCELADO = 'CANCELADO'
-}
+// O enum PurchaseRequestState local foi removido. Usaremos o do @prisma/client.
 
 export enum Action {
   Manage = 'manage',
@@ -36,9 +37,11 @@ export enum Action {
   Update = 'update',
   Delete = 'delete',
   Submit = 'submit',
-  ApprovePurchase = 'approve_purchase',
-  ApproveManagement = 'approve_management',
+  ApprovePurchase = 'approve_purchase', // Aprovação Nível Compras
+  ApproveManagement = 'approve_management', // Aprovação Nível Gerência (Legado ou genérico)
+  ApproveLevel2 = 'approve_level_2', // Aprovação Nível 2 (Gerência - Específico)
   Reject = 'reject',
+  Execute = 'execute', // Execução da Compra
   PlaceOrder = 'place_order',
   ReceiveItems = 'receive_items',
   Cancel = 'cancel',
@@ -87,17 +90,28 @@ export class CaslAbilityFactory {
     // Setor de Compras pode aprovar requisições pendentes e criar pedidos
     if (user.roles.some(r => r.role === UserRole.COMPRAS)) {
       can(Action.Read, 'PurchaseRequest');
-      can(Action.ApprovePurchase, 'PurchaseRequest');
-      can(Action.Reject, 'PurchaseRequest');
-      can(Action.PlaceOrder, 'PurchaseRequest');
+      // Permissão para aprovar o nível 1 (Compras) - PENDENTE_COMPRAS -> PENDENTE_GERENCIA
+      can(Action.ApprovePurchase, 'PurchaseRequest', undefined, { status: { $eq: PurchaseRequestState.PENDENTE_COMPRAS } } as any);
+      can(Action.Reject, 'PurchaseRequest', undefined, { status: { $eq: PurchaseRequestState.PENDENTE_COMPRAS } } as any);
+      // Compras pode executar uma requisição SE ela estiver no estado APROVADO
+      can(Action.Execute, 'PurchaseRequest', undefined, { status: { $eq: PurchaseRequestState.APROVADO } } as any);
+      // Outras permissões de Compras
+      can(Action.PlaceOrder, 'PurchaseRequest'); // Geralmente após aprovação
       can(Action.ReceiveItems, 'PurchaseRequest');
     }
 
     // Gerência pode aprovar requisições dentro do seu limite
     if (user.roles.some(r => r.role === UserRole.GERENCIA)) {
-      can(Action.Read, 'PurchaseRequest');
-      can(Action.ApproveManagement, 'PurchaseRequest');
-      can(Action.Reject, 'PurchaseRequest');
+      can(Action.Read, 'PurchaseRequest'); // Gerência pode ver TODAS as requisições
+      // Gerência pode aprovar (nível 2) ou rejeitar uma requisição SE ela estiver no estado PENDENTE_GERENCIA
+      can(Action.ApproveLevel2, 'PurchaseRequest', undefined, { status: { $eq: PurchaseRequestState.PENDENTE_GERENCIA } } as any);
+      can(Action.Reject, 'PurchaseRequest', undefined, { status: { $eq: PurchaseRequestState.PENDENTE_GERENCIA } } as any);
+      // Mantendo ApproveManagement se houver outros usos, mas especificando para PENDENTE_GERENCIA também se aplicável
+      // ou se ApproveManagement for o evento usado pela máquina de estados para o fluxo da gerência.
+      // A instrução original foca em ApproveLevel2 para a nova lógica.
+      // Se ApproveManagement é um nome legado para a aprovação da gerência, podemos adicionar a condição de status aqui também.
+      // Por ora, vou manter como está e focar em ApproveLevel2 para a nova transição.
+      // can(Action.ApproveManagement, 'PurchaseRequest', { status: PurchaseRequestState.PENDENTE_GERENCIA });
     }
 
     return build({

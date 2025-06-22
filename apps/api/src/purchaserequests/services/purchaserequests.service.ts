@@ -286,10 +286,43 @@ export class PurchaseRequestsService {
     this.logger.log(`Transição bem-sucedida para Req ID: ${requestId}. De '${currentRequestState.status}' para '${newState}'.`);
 
     try {
-      const [updatedRequest, _historyLog] = await this.prisma.$transaction([
-        this.prisma.purchaseRequest.update({
+      // Preparar dados para atualização e histórico
+      const updateData: Prisma.PurchaseRequestUpdateInput = {
+        status: newState,
+        // Adiciona notas se presentes no evento e o estado mudou
+        ...(eventDto.notes && stateChanged && { notes: eventDto.notes }),
+      };
+      let actionDescriptionDetails = '';
+
+      if (eventDto.type === 'REJECT' && eventDto.payload?.rejectionReason) {
+        updateData.rejectionReason = eventDto.payload.rejectionReason;
+        actionDescriptionDetails = ` - Motivo da Rejeição: ${eventDto.payload.rejectionReason}`;
+      } else if (eventDto.payload?.reason) { // Manter lógica para 'reason' genérico se houver
+        actionDescriptionDetails = ` - Motivo: ${eventDto.payload.reason}`;
+      }
+
+      // Se o estado mudou para APROVADO, registrar a data de aprovação
+      if (newState === PurchaseRequestState.APROVADO && currentRequestState.status !== PurchaseRequestState.APROVADO) {
+        updateData.approvedAt = new Date();
+      }
+      // Se o estado mudou para REJEITADO, registrar a data de rejeição
+      if (newState === PurchaseRequestState.REJEITADO && currentRequestState.status !== PurchaseRequestState.REJEITADO) {
+        updateData.rejectedAt = new Date();
+      }
+       // Se o estado mudou para COMPRADO (ou CONCLUIDO, dependendo da semântica), registrar a data
+      if (newState === PurchaseRequestState.CONCLUIDO && currentRequestState.status !== PurchaseRequestState.CONCLUIDO) {
+        // Assumindo que CONCLUIDO implica que o pedido foi feito e finalizado.
+        // O campo 'orderedAt' está sendo usado aqui para indicar a data de conclusão/execução final.
+        // Se um fluxo mais granular com um estado 'COMPRADO' distinto fosse implementado,
+        // 'orderedAt' poderia ser definido nesse estado intermediário.
+        updateData.orderedAt = new Date();
+      }
+
+
+      const [updatedRequest, _historyLog] = await this.prisma.$transaction(async (tx) => {
+        const localUpdatedRequest = await tx.purchaseRequest.update({
           where: { id: requestId },
-          data: { status: newState },
+          data: updateData,
           include: {
             items: true,
             requester: {
@@ -313,19 +346,21 @@ export class PurchaseRequestsService {
               }
             }
           }
-        }),
-        this.prisma.requestHistory.create({
+        });
+        const localHistoryLog = await tx.requestHistory.create({
           data: {
             purchaseRequestId: requestId,
             userId: performingUser.id,
             previousState: currentRequestState.status,
             newState: newState,
             actionType: eventDto.type,
-            actionDescription: `Evento: ${eventDto.type}${eventDto.payload?.reason ? ` - Motivo: ${eventDto.payload.reason}` : ''}`,
+            actionDescription: `Evento: ${eventDto.type}${actionDescriptionDetails}`,
+            notes: eventDto.notes, // Registrar notas no histórico também
             metadata: eventDto.payload ? JSON.stringify(eventDto.payload) : undefined,
           },
-        }),
-      ]);
+        });
+        return [localUpdatedRequest, localHistoryLog];
+      });
 
       this.logger.log(`Requisição ID: ${requestId} atualizada para estado: ${newState} e histórico registrado.`);
       service.stop();
