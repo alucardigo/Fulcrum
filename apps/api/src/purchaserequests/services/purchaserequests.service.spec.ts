@@ -13,7 +13,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { purchaseRequestMachine } from '../../workflow/purchase-request.machine';
 
 // Mock User helper unificado
-const mockAppUser = (id: string, roles: CaslUserRole): UserWithRoles => ({
+const mockAppUser = (id: string, roles: CaslUserRole[]): UserWithRoles => ({
   id,
   email: `${id}@example.com`,
   firstName: 'Mock',
@@ -61,7 +61,22 @@ describe('PurchaseRequestsService', () => {
     mockPrisma = createMockPrismaClient();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers:,
+      providers: [
+        PurchaseRequestsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: CaslAbilityFactory,
+          useValue: {
+            createForUser: jest.fn(() => mockAbility),
+          },
+        },
+        {
+          provide: ItemsService,
+          useValue: {
+            calculateTotalAmount: jest.fn().mockResolvedValue(new Decimal(101.0)),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<PurchaseRequestsService>(PurchaseRequestsService);
@@ -78,8 +93,8 @@ describe('PurchaseRequestsService', () => {
       const createDto: CreatePurchaseRequestDto = {
         title: 'New Test Request',
         description: 'A description for the test request',
-        priority: PurchaseRequestPriority.MEDIA,
-        items:,
+        priority: PurchaseRequestPriority.NORMAL,
+        items: [{ name: 'Test Item', quantity: 2, unitPrice: 50.5 }],
         costCenter: 'CC_Create',
         justification: 'Justificativa de teste Create',
       };
@@ -93,8 +108,8 @@ describe('PurchaseRequestsService', () => {
         totalAmount,
         status: PurchaseRequestState.RASCUNHO,
         requesterId: userId,
-        items:,
-        histories:,
+        items: [],
+        histories: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -119,7 +134,7 @@ describe('PurchaseRequestsService', () => {
       const result = await service.create(createDto, userId);
 
       expect(mockPrisma.$transaction).toHaveBeenCalled();
-      const transactionCallback = mockPrisma.$transaction.mock.calls;
+      const transactionCallback = mockPrisma.$transaction.mock.calls[0][0];
       const mockTxClient = {
         purchaseRequest: {
           create: jest.fn().mockResolvedValue({ id: createdPrId, totalAmount }),
@@ -144,11 +159,11 @@ describe('PurchaseRequestsService', () => {
   });
 
   // Testes de transição adaptados da sua branch para a nova API da 'main'
-  describe('transitionState', () => {
+  describe('transition', () => {
     const requestId = 'pr-to-transition';
-    const solicitante = mockAppUser('user-solicitante-id',);
-    const gerente = mockAppUser('user-gerente-id',);
-    const compras = mockAppUser('user-compras-id',);
+    const solicitante = mockAppUser('user-solicitante-id', [CaslUserRole.SOLICITANTE]);
+    const gerente = mockAppUser('user-gerente-id', [CaslUserRole.GERENCIA]);
+    const compras = mockAppUser('user-compras-id', [CaslUserRole.COMPRAS]);
 
     const baseMockPr: any = {
       id: requestId,
@@ -156,8 +171,8 @@ describe('PurchaseRequestsService', () => {
       status: PurchaseRequestState.RASCUNHO,
       totalAmount: new Decimal(100),
       requesterId: solicitante.id,
-      items:,
-      histories:,
+      items: [],
+      histories: [],
     };
 
     // Função helper para simular a máquina de estado
@@ -190,7 +205,7 @@ describe('PurchaseRequestsService', () => {
       mockAbility.can.mockReturnValue(true); // O solicitante pode submeter
       setupMachineMock(PurchaseRequestState.RASCUNHO, PurchaseRequestState.PENDENTE_COMPRAS);
 
-      const result = await service.transitionState(requestId, transitionDto, solicitante);
+      const result = await service.transition(requestId, transitionDto, solicitante);
 
       expect(caslAbilityFactory.createForUser).toHaveBeenCalledWith(solicitante);
       expect(mockAbility.can).toHaveBeenCalled();
@@ -211,7 +226,7 @@ describe('PurchaseRequestsService', () => {
       mockAbility.can.mockReturnValue(true); // O gerente pode aprovar
       setupMachineMock(PurchaseRequestState.PENDENTE_GERENCIA, PurchaseRequestState.APROVADA);
 
-      const result = await service.transitionState(requestId, transitionDto, gerente);
+      const result = await service.transition(requestId, transitionDto, gerente);
 
       expect(caslAbilityFactory.createForUser).toHaveBeenCalledWith(gerente);
       expect(mockPrisma.purchaseRequest.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -234,7 +249,7 @@ describe('PurchaseRequestsService', () => {
       mockAbility.can.mockReturnValue(true);
       setupMachineMock(PurchaseRequestState.PENDENTE_COMPRAS, PurchaseRequestState.REJEITADA);
 
-      const result = await service.transitionState(requestId, transitionDto, gerente);
+      const result = await service.transition(requestId, transitionDto, gerente);
 
       expect(mockPrisma.purchaseRequest.update).toHaveBeenCalledWith(expect.objectContaining({
         data: {
@@ -262,7 +277,7 @@ describe('PurchaseRequestsService', () => {
         mockAbility.can.mockReturnValue(true); // Compras pode executar
         setupMachineMock(PurchaseRequestState.APROVADA, PurchaseRequestState.EM_COTACAO);
   
-        const result = await service.transitionState(requestId, transitionDto, compras);
+        const result = await service.transition(requestId, transitionDto, compras);
   
         expect(caslAbilityFactory.createForUser).toHaveBeenCalledWith(compras);
         expect(mockPrisma.purchaseRequest.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -280,7 +295,7 @@ describe('PurchaseRequestsService', () => {
       // A máquina de estado não permitirá a transição
       setupMachineMock(PurchaseRequestState.APROVADA, PurchaseRequestState.APROVADA);
 
-      await expect(service.transitionState(requestId, transitionDto, solicitante))
+      await expect(service.transition(requestId, transitionDto, solicitante))
        .rejects.toThrow(ForbiddenException);
 
       expect(mockPrisma.purchaseRequest.update).not.toHaveBeenCalled();
@@ -295,7 +310,7 @@ describe('PurchaseRequestsService', () => {
   
         // A máquina de estado não será nem consultada se o CASL falhar primeiro
   
-        await expect(service.transitionState(requestId, transitionDto, solicitante)) // Solicitante tentando aprovar
+        await expect(service.transition(requestId, transitionDto, solicitante)) // Solicitante tentando aprovar
          .rejects.toThrow(ForbiddenException);
   
         expect(mockPrisma.purchaseRequest.update).not.toHaveBeenCalled();
@@ -305,7 +320,7 @@ describe('PurchaseRequestsService', () => {
       const transitionDto: TransitionPurchaseRequestDto = { eventType: EventType.SUBMIT };
       mockPrisma.purchaseRequest.findUniqueOrThrow.mockRejectedValue(new Error('Record not found'));
 
-      await expect(service.transitionState('non-existent-id', transitionDto, solicitante))
+      await expect(service.transition('non-existent-id', transitionDto, solicitante))
        .rejects.toThrow(NotFoundException);
     });
   });

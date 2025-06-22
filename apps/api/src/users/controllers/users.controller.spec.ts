@@ -184,5 +184,3 @@ describe('UsersController', () => {
     });
   });
 });
-
-[end of apps/api/src/users/controllers/users.controller.spec.ts]
