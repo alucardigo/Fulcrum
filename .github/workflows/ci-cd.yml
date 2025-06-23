@@ -77,6 +77,8 @@ jobs:
     name: 🌐 Testes E2E
     needs: validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     services:
       mysql:
         image: mysql:8.0
