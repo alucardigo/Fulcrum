@@ -184,6 +184,8 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     environment: staging
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
