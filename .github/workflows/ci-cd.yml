@@ -150,6 +150,8 @@ jobs:
     name: 🏗️ Build
     needs: [test-unit, test-e2e, security-scan]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
