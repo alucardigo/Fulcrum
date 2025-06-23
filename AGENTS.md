@@ -63,12 +63,13 @@ A implantação inicial (e potencialmente por um tempo considerável) será em u
 *   **`README.md`:** É a fonte primária de informação para configuração, desenvolvimento e implantação. Mantenha-o atualizado.
 *   **Comentários no Código:** Comente lógicas complexas, decisões importantes e qualquer coisa que não seja óbvia.
 *   **Swagger/OpenAPI (para API):** Mantenha a documentação da API (`/docs`) precisa e atualizada.
+*   **`JULES_SETUP.md`**: Para instruções específicas sobre como o agente de IA (Jules) deve configurar seu ambiente e interagir com o projeto, consulte o arquivo `JULES_SETUP.md` na raiz do projeto.
 
 ## 4. Ao Modificar Código
 
 *   **Pense na Portabilidade:** Suas alterações devem funcionar tanto no ambiente Docker de desenvolvimento quanto no ambiente Node.js direto do cPanel.
 *   **Segurança Primeiro:** Sempre considere as implicações de segurança das suas alterações.
 *   **Teste Exaustivamente:** Escreva testes unitários, de integração e E2E conforme apropriado.
-*   **Mantenha a Documentação:** Se suas alterações impactam a configuração, implantação ou a forma como outros desenvolvedores interagem com o sistema, atualize o `README.md` e este `AGENTS.md`.
+*   **Mantenha a Documentação:** Se suas alterações impactam a configuração, implantação ou a forma como outros desenvolvedores (ou agentes de IA) interagem com o sistema, atualize o `README.md`, este `AGENTS.md` e, se aplicável, o `JULES_SETUP.md`.
 
 Obrigado por ajudar a tornar o Fulcrum um sucesso!

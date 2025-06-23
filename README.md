@@ -50,31 +50,37 @@ Fulcrum é uma plataforma SaaS empresarial de gestão de compras, projetada para
 
 O ambiente de desenvolvimento principal utiliza Docker para garantir consistência e portabilidade.
 
-1.  **Pré-requisitos:**
-    *   Docker e Docker Compose instalados.
-    *   Git.
-    *   Node.js e pnpm (para alguns comandos auxiliares ou se não quiser usar Docker para tudo).
+1.  **Pré-requisitos Essenciais:**
+    *   **Node.js:** Versão `v20.11.0` ou compatível (conforme `.nvmrc`). É altamente recomendável usar um gerenciador de versões como `nvm` (`nvm use` na raiz do projeto).
+    *   **pnpm:** Versão `>=10.12.1` (conforme `packageManager` no `package.json` raiz).
+    *   **Git:** Para clonar e gerenciar o código.
+    *   **Docker e Docker Compose:** Fortemente recomendados para o ambiente de desenvolvimento local padronizado.
 
-2.  **Clone o repositório:**
+    Você pode verificar muitos desses requisitos usando o script:
+    ```bash
+    ./scripts/check-requirements.sh
+    ```
+
+2.  **Clone o Repositório:**
     ```bash
     git clone <URL_DO_SEU_REPOSITORIO_GIT>
     cd nome-do-repositorio # Ex: Fulcrum
     ```
 
-3.  **Configure as Variáveis de Ambiente para Docker:**
-    *   Copie o arquivo `.env.docker-compose.example` para `.env` na raiz do projeto:
-        ```bash
-        cp .env.docker-compose.example .env
-        ```
-    *   Revise e ajuste as variáveis no arquivo `.env` conforme necessário (ex: portas, credenciais de banco de dados para o ambiente Docker).
+3.  **Configuração Rápida do Ambiente de Desenvolvimento:**
+    Para instalar dependências e configurar arquivos `.env` iniciais, use o script de setup:
+    ```bash
+    ./scripts/setup-dev-env.sh
+    ```
+    Este script também executa a verificação de requisitos. Após a execução, revise os arquivos `.env` criados (na raiz, `apps/api/`, `apps/web/`) e ajuste conforme necessário.
 
-4.  **Suba o Ambiente com Docker Compose:**
+4.  **Suba o Ambiente com Docker Compose (Recomendado):**
     ```bash
     docker-compose up --build -d
     ```
     O comando `-d` executa os containers em modo detached (background). Para ver os logs: `docker-compose logs -f`.
 
-5.  **Acessando os Serviços:**
+5.  **Acessando os Serviços (Padrão com Docker):**
     *   **API Backend (NestJS):** `http://localhost:3333` (ou a porta que você configurou)
     *   **Documentação da API (Swagger):** `http://localhost:3333/docs`
     *   **Frontend Web (Next.js):** `http://localhost:3000` (ou a porta que você configurou)
@@ -113,6 +119,16 @@ O ambiente de desenvolvimento principal utiliza Docker para garantir consistênc
     pnpm --filter api db:migrate:dev
     ```
 
+## Scripts de Automação Adicionais
+
+A pasta `scripts/` na raiz do projeto contém utilitários para facilitar tarefas comuns:
+
+*   **`scripts/check-requirements.sh`**: Verifica se Node.js, pnpm e Docker estão instalados e nas versões corretas.
+*   **`scripts/setup-dev-env.sh`**: Automatiza a configuração inicial do ambiente de desenvolvimento (verifica requisitos, instala dependências, copia arquivos `.env`).
+*   **`scripts/build-for-cpanel.sh`**: Constrói as aplicações `api` e `web` e as empacota em arquivos `.zip` (na pasta `deploy/`) prontos para upload no cPanel.
+
+Consulte os scripts para mais detalhes sobre seu funcionamento.
+
 ## Implantação em Hospedagem Compartilhada (cPanel)
 
 Esta seção descreve como implantar a aplicação em um ambiente de hospedagem compartilhada que utiliza cPanel e suporta aplicações Node.js, com a premissa de um banco de dados MySQL 5.7 (EOL).
@@ -124,49 +140,50 @@ Esta seção descreve como implantar a aplicação em um ambiente de hospedagem 
 *   Acesso ao cPanel da sua hospedagem.
 *   Suporte para aplicações Node.js (geralmente via "Setup Node.js App" ou "Application Manager").
 *   Acesso para configurar um banco de dados MySQL.
-*   Node.js e pnpm instalados no seu ambiente local (ou em um ambiente de build) para preparar os artefatos de produção.
+*   **Node.js (versão 20.x) e pnpm** instalados no seu ambiente local (ou em um ambiente de build) para preparar os artefatos de produção. A versão do Node.js deve ser compatível com a `v20.11.0` especificada no projeto.
 
 ### 2. Buildando a Aplicação para Produção
 
 Antes de fazer o upload, você precisa buildar as aplicações `api` e `web`.
 
-*   **Buildar o Backend (API NestJS):**
-    No seu ambiente local/build, execute:
+*   **Usando o Script de Build para cPanel (Recomendado):**
+    O script `build-for-cpanel.sh` automatiza os passos de build e empacotamento:
     ```bash
-    pnpm --filter api build
+    ./scripts/build-for-cpanel.sh
     ```
-    Isso criará a pasta `apps/api/dist` com os arquivos JavaScript transpilados e prontos para produção. O Prisma Client também deve ser gerado e incluído aqui.
+    Isso gerará `deploy/api.zip` e `deploy/web.zip`. Prossiga para o passo "Preparando os Arquivos para Upload" com esses arquivos.
 
-*   **Buildar o Frontend (Aplicação Web Next.js):**
-    No seu ambiente local/build, execute:
-    ```bash
-    pnpm --filter web build
-    ```
-    Isso criará a pasta `apps/web/.next` otimizada para produção. Para Next.js, a implantação mais comum em ambientes Node.js é usando o output standalone ou o servidor Next.js integrado.
+*   **Manualmente (se não usar o script):**
+    *   **Buildar o Backend (API NestJS):**
+        ```bash
+        pnpm --filter api build
+        ```
+        Isso criará a pasta `apps/api/dist`.
+    *   **Buildar o Frontend (Aplicação Web Next.js):**
+        ```bash
+        pnpm --filter web build
+        ```
+        Isso criará a pasta `apps/web/.next` (e `apps/web/.next/standalone` se configurado).
     *   **Modo Standalone (Recomendado para cPanel se possível):**
         Se o `next.config.ts` (ou `.js`) em `apps/web` estiver configurado com `output: 'standalone'`, o build criará uma pasta `apps/web/.next/standalone` que copia apenas os arquivos necessários, incluindo uma versão mínima do `node_modules`. Isso é ideal para implantação.
     *   **Servidor Next.js Padrão:** Se não estiver usando o modo standalone, você precisará do conteúdo de `apps/web/.next` e do `apps/web/public`, e o `package.json` do `apps/web` para instalar as dependências de produção no servidor.
 
-### 3. Preparando os Arquivos para Upload
+### 3. Preparando os Arquivos para Upload (Detalhes se não usou o script `build-for-cpanel.sh`)
 
-*   **Backend (API):**
-    1.  Crie um arquivo `.zip` contendo:
-        *   Todo o conteúdo da pasta `apps/api/dist`.
-        *   O arquivo `apps/api/package.json`.
-        *   O arquivo `apps/api/pnpm-lock.yaml` (ou `package-lock.json` se não usar pnpm no servidor).
-        *   **Importante para Prisma com MySQL 5.7:** Certifique-se de que o `schema.prisma` em `apps/api/prisma/schema.prisma` tem o provider `mysql`.
-    2.  **Alternativa para `node_modules` da API:** Em vez de incluir `package.json` e `pnpm-lock.yaml` e instalar no servidor, você pode tentar zipar a pasta `apps/api/dist` JUNTO com a pasta `apps/api/node_modules` (após rodar `pnpm install --prod` dentro de `apps/api` localmente em um ambiente similar ao do servidor). Isso pode ser mais simples se o cPanel não tiver uma boa interface para instalar dependências ou se houver problemas de compatibilidade.
+Se você não usou o script `build-for-cpanel.sh`, precisará criar os pacotes `.zip` manualmente conforme descrito abaixo. O script já faz isso por você.
 
-*   **Frontend (Web):**
-    *   **Se usando `output: 'standalone'`:**
-        Crie um arquivo `.zip` contendo todo o conteúdo da pasta `apps/web/.next/standalone` e a pasta `apps/web/public`.
-    *   **Se usando o servidor Next.js padrão (sem standalone):**
-        Crie um arquivo `.zip` contendo:
-        *   Todo o conteúdo da pasta `apps/web/.next`.
-        *   A pasta `apps/web/public`.
-        *   O arquivo `apps/web/package.json`.
-        *   O arquivo `apps/web/pnpm-lock.yaml` (ou `package-lock.json`).
-        *   O arquivo `apps/web/next.config.ts` (ou `.js`).
+*   **Backend (API) - `api.zip` deve conter:**
+    *   Conteúdo de `apps/api/dist/`.
+    *   `apps/api/package.json`.
+    *   `apps/api/pnpm-lock.yaml`.
+    *   `apps/api/prisma/schema.prisma`.
+    *   (Opcional) `apps/api/.env.example`.
+
+*   **Frontend (Web) - `web.zip` deve conter (assumindo `output: 'standalone'`):**
+    *   Conteúdo de `apps/web/.next/standalone/`.
+    *   Conteúdo de `apps/web/public/`.
+    *   Conteúdo de `apps/web/.next/static/` (copiado para `web_temp/.next/static/` no script).
+    *   (Opcional) `apps/web/.env.example`.
 
 ### 4. Configurando o Banco de Dados MySQL no cPanel
 
@@ -204,14 +221,14 @@ O processo exato pode variar ligeiramente dependendo da interface do cPanel da s
         *   **Primeira vez / Seed:** Se tiver um script de seed, precisará executá-lo também.
 
 *   **Para o Frontend (Web):**
-    A forma de implantar o frontend Next.js depende se ele precisa de um servidor Node.js ou se pode ser servido como arquivos estáticos (apenas se você usou `next export`, o que é menos comum para apps dinâmicas). Assumindo que ele precisa de um servidor Node.js (padrão ou standalone):
+    A forma de implantar o frontend Next.js depende se ele precisa de um servidor Node.js. Assumindo que ele precisa de um servidor Node.js (padrão ou, preferencialmente, standalone):
     1.  Siga um processo similar ao do backend para fazer upload e configurar uma segunda aplicação Node.js no cPanel.
-        *   **Application Root:** Caminho para a pasta do frontend (ex: `fulcrum_web`).
+        *   **Application Root:** Caminho para a pasta do frontend (ex: `fulcrum_web`), onde você extraiu o `web.zip`.
         *   **Application URL:** O domínio principal ou subdomínio para sua aplicação web (ex: `app.seudominio.com` ou `www.seudominio.com`).
         *   **Application Startup File:**
-            *   Se `output: 'standalone'`: `server.js` (dentro da pasta `standalone`).
-            *   Caso contrário: `node_modules/next/dist/bin/next-start.js` (ou o script de start do `package.json` do `apps/web` que seria `next start`). O cPanel pode precisar que você especifique um arquivo JS.
-        *   **Node.js version:** Compatível com sua versão do Next.js.
+            *   Se `output: 'standalone'` (recomendado e usado pelo script `build-for-cpanel.sh`): `server.js` (este arquivo estará na raiz do que foi extraído do `web.zip`, dentro da estrutura do `standalone`).
+            *   Caso contrário (build Next.js padrão): `node_modules/next/dist/bin/next-start.js`. Isso exigiria que você também fizesse upload e instalasse `node_modules` para `apps/web`.
+        *   **Node.js version:** Selecione a versão 20.x no cPanel.
     2.  **Variáveis de Ambiente:**
         *   `NEXT_PUBLIC_API_BASE_URL="URL_DA_SUA_API_DEPLOYADA"` (ex: `https://api.seudominio.com`).
         *   `PORT` (geralmente gerenciado pelo cPanel).
@@ -262,7 +279,12 @@ Você pode rodar os testes localmente usando Docker ou diretamente com pnpm.
 - Escreva testes para novas funcionalidades.
 - Documente endpoints (Swagger para API) e regras de negócio.
 - Use mensagens de commit claras e descritivas (ex: Conventional Commits).
-- Atualize este `README.md` e outra documentação relevante conforme necessário.
+- Atualize este `README.md` e outra documentação relevante (`AGENTS.md`, `JULES_SETUP.md`) conforme necessário.
+
+## Documentação Adicional
+
+*   **`AGENTS.md`**: Contém diretrizes de alto nível para agentes de IA e desenvolvedores sobre a filosofia do projeto, restrições e práticas recomendadas.
+*   **`JULES_SETUP.md`**: Um guia detalhado para o agente de IA Jules sobre como configurar o ambiente de desenvolvimento e interagir com o projeto, incluindo comandos comuns e considerações específicas.
 
 ## Diferenciais do Fulcrum
 - Fluxo de aprovação visual e robusto (XState).
