@@ -1,5 +1,8 @@
 name: Daily Backup
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: '0 2 * * *'  # Executa às 2h da manhã todos os dias
