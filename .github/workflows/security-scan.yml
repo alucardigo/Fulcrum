@@ -69,7 +69,7 @@ jobs:
             
       - name: Notify on High Severity Findings
         if: failure()
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           payload: |
             {
